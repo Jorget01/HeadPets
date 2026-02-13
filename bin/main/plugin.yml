@@ -1,0 +1,27 @@
+name: PatsPets
+version: 1.0.0
+main: me.pats.pets.PatsPetsPlugin
+api-version: "1.21"
+author: pats
+
+commands:
+  pets:
+    description: Открыть меню питомцев
+    usage: /pets
+    permission: pats.pets.open
+
+permissions:
+  pats.pets.open:
+    description: Доступ к команде /pets
+    default: true
+  pats.pets.wolf:
+    default: op
+  pats.pets.cat:
+    default: op
+  pats.pets.fox:
+    default: op
+  pats.pets.parrot:
+    default: op
+  pats.pets.allay:
+    default: op
+

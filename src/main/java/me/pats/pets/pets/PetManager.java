@@ -9,6 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sittable;
 import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,9 +24,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PetManager implements Listener {
@@ -93,12 +94,16 @@ public final class PetManager implements Listener {
         living.getPersistentDataContainer().set(petIdKey, PersistentDataType.STRING, pet.id());
 
         if (living instanceof Mob mob) {
-            mob.setAI(false);
+            mob.setTarget(null);
         }
         if (living instanceof Tameable tameable) {
             tameable.setOwner(player);
             tameable.setTamed(true);
         }
+        if (living instanceof Sittable sittable) {
+            sittable.setSitting(false);
+        }
+        living.setCollidable(false);
 
         activePets.put(player.getUniqueId(), new ActivePet(pet.id(), living.getUniqueId()));
     }
@@ -150,17 +155,19 @@ public final class PetManager implements Listener {
                     continue;
                 }
 
-                Location target = computeTarget(playerLoc);
-                Vector direction = target.toVector().subtract(petLoc.toVector());
-                if (direction.lengthSquared() < 0.04) {
-                    living.setVelocity(new Vector(0, living.getVelocity().getY(), 0));
+                if (dist2 < (2.2 * 2.2)) {
+                    if (living instanceof Mob mob) {
+                        mob.getPathfinder().stopPathfinding();
+                    }
                     continue;
                 }
 
-                Vector velocity = direction.normalize().multiply(0.35);
-                velocity.setY(living.getVelocity().getY());
-                living.setVelocity(velocity);
-                living.setFallDistance(0f);
+                Location target = computeTarget(playerLoc);
+                if (living instanceof Mob mob) {
+                    mob.getPathfinder().moveTo(target, 1.2);
+                } else {
+                    living.teleport(target);
+                }
             }
         }, 10L, 10L);
     }
