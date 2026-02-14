@@ -4,6 +4,9 @@ plugins {
 
 group = "me.pats"
 version = "1.0.0"
+base {
+    archivesName.set("petsPVH")
+}
 
 java {
     toolchain {
@@ -30,4 +33,3 @@ tasks {
         filteringCharset = "UTF-8"
     }
 }
-

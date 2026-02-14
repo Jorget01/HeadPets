@@ -116,7 +116,14 @@ public final class PatsPetsPlugin extends JavaPlugin implements CommandExecutor 
         }
 
         String ruName = args.length >= 3 ? args[2].replace('_', ' ') : id;
-        String enName = args.length >= 4 ? args[3].replace('_', ' ') : id;
+        String enName;
+        if (args.length >= 4) {
+            enName = args[3].replace('_', ' ');
+        } else if (args.length >= 3) {
+            enName = ruName;
+        } else {
+            enName = id;
+        }
 
         if (petRegistry.byId(id) != null) {
             sender.sendMessage(Text.parse("&c" + i18n.tr(player, "msg.pet_exists", Map.of("id", id))));

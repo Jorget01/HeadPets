@@ -18,7 +18,7 @@ menu:
     off: "Выкл"
     disabled: "Отключено на сервере"
   pet:
-    locked: "Нет доступа (perms)."
+    locked: "Нет доступа."
     active: "Сейчас активен"
     inactive: "Сейчас не активен"
     left_toggle_on: "ЛКМ: активировать"
@@ -33,7 +33,7 @@ menu:
     page: "Страница {page}/{pages}"
   empty:
     title: "Нет доступных питомцев"
-    hint: "Выдай игроку нужные permissions."
+    hint: ""
 
 msg:
   no_permission_pet: "У тебя нет доступа к этому питомцу."
