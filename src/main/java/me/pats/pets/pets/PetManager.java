@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -117,6 +118,10 @@ public final class PetManager implements Listener {
             player.sendMessage(Text.parse("&7" + i18n.tr(player, "msg.pet_deactivated")));
             return;
         }
+
+        // Safety: if the plugin reloaded/crashed earlier, old persistent ArmorStands may remain nearby.
+        // Remove any stray entities for this player/pet before spawning a new one.
+        removeOwnedPetEntitiesNearby(player, pet.id());
 
         int max = settings.pets().maxActivePerPlayer();
         if (list.size() >= max) {
@@ -260,6 +265,9 @@ public final class PetManager implements Listener {
                     }
 
                     double closeDist = settings.follow().closeDistance();
+                    if (total > 1) {
+                        closeDist = Math.min(closeDist, 0.35);
+                    }
                     if (distTarget2 < (closeDist * closeDist)) {
                         continue;
                     }
@@ -309,11 +317,17 @@ public final class PetManager implements Listener {
 
                     Location loc = living.getLocation().clone().add(0, p.yOffset(), 0);
                     String chosenId = resolveChosenParticleId(p, playerId, active.petId(), defId);
+                    if ("none".equalsIgnoreCase(chosenId)) {
+                        continue;
+                    }
                     PluginSettings.ParticleOption option = options.stream()
                             .filter(o -> o.id().equalsIgnoreCase(chosenId))
                             .findFirst()
                             .orElse(options.isEmpty() ? new PluginSettings.ParticleOption("end_rod", Particle.END_ROD, "Эндер-искра", "End Rod") : options.get(0));
 
+                    if (option.particle() == null) {
+                        continue;
+                    }
                     if (p.visibility() == PluginSettings.ParticleVisibility.OWNER) {
                         player.spawnParticle(option.particle(), loc, p.count(), p.offsetX(), p.offsetY(), p.offsetZ(), p.extra());
                     } else {
@@ -411,33 +425,25 @@ public final class PetManager implements Listener {
             return base;
         }
 
-        double sideSpacing = 0.60;
-        double downSpacing = 0.22;
-        double extraBackPerLevel = 0.08;
+        // Spread pets wider + stagger heights so they don't look like a single blob while moving.
+        base.add(0, -0.25, 0);
 
-        int level = Math.max(0, index / 3);
-        int pos = Math.floorMod(index, 3); // 0=left, 1=right, 2=center
+        double spread = 1.05;
+        double verticalStep = 0.35;
+        double downPerRow = 0.15;
+        double extraBack = 0.18;
 
-        double x;
-        double y = -level * downSpacing;
-        double z = level * extraBackPerLevel;
+        double center = (total - 1) / 2.0;
+        double xIndex = index - center; // left negative, right positive
 
-        if (pos == 0) {
-            x = -sideSpacing;
-        } else if (pos == 1) {
-            x = sideSpacing;
-        } else {
-            x = 0.0;
-            // first "center" goes slightly lower so it doesn't stack
-            y = -(level + 1) * downSpacing;
-            z += extraBackPerLevel;
-        }
+        double x = xIndex * spread;
+        double y = ((index % 3) - 1) * verticalStep - (index / 3) * downPerRow;
+        double z = Math.abs(xIndex) * extraBack;
 
         Vector right = playerLoc.getDirection().clone().crossProduct(new Vector(0, 1, 0)).normalize();
         Vector offset = right.multiply(x).add(back.clone().normalize().multiply(z));
 
-        Location target = base.add(offset);
-        target.add(0, y, 0);
+        Location target = base.add(offset).add(0, y, 0);
         target.setYaw(playerLoc.getYaw());
         target.setPitch(0f);
         return target;
@@ -461,6 +467,28 @@ public final class PetManager implements Listener {
         }
     }
 
+    private String getPetId(Entity entity) {
+        if (!(entity instanceof LivingEntity living)) return null;
+        return living.getPersistentDataContainer().get(petIdKey, PersistentDataType.STRING);
+    }
+
+    private void removeOwnedPetEntitiesNearby(Player player, String petIdOrNull) {
+        UUID ownerId = player.getUniqueId();
+        double r = Math.max(48.0, settings.follow().teleportDistance() + 32.0);
+        Collection<Entity> nearby = player.getNearbyEntities(r, r, r);
+        for (Entity e : nearby) {
+            if (!(e instanceof ArmorStand)) continue;
+            if (!isOurPet(e)) continue;
+            UUID owner = getOwnerId(e);
+            if (owner == null || !owner.equals(ownerId)) continue;
+            if (petIdOrNull != null) {
+                String pid = getPetId(e);
+                if (pid == null || !pid.equalsIgnoreCase(petIdOrNull)) continue;
+            }
+            e.remove();
+        }
+    }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         UUID playerId = event.getPlayer().getUniqueId();
@@ -470,6 +498,8 @@ public final class PetManager implements Listener {
                 removeEntity(active.entityId());
             }
         }
+        // Extra safety: remove any remaining persistent pet stands near the player.
+        removeOwnedPetEntitiesNearby(event.getPlayer(), null);
     }
 
     @EventHandler
@@ -481,6 +511,7 @@ public final class PetManager implements Listener {
                 removeEntity(active.entityId());
             }
         }
+        removeOwnedPetEntitiesNearby(event.getEntity(), null);
     }
 
     @EventHandler
@@ -538,6 +569,11 @@ public final class PetManager implements Listener {
     private void restorePets(Player player) {
         UUID playerId = player.getUniqueId();
         List<String> stored = dataStore.getActivePets(playerId);
+
+        // If the player relogs (or the plugin reloads) and old persistent stands are still around,
+        // they can become orphaned and stop following. Remove them before restoring.
+        removeOwnedPetEntitiesNearby(player, null);
+
         if (stored.isEmpty()) return;
 
         int max = settings.pets().maxActivePerPlayer();

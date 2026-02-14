@@ -127,6 +127,9 @@ public final class PluginSettings {
         if (options.isEmpty()) {
             options.add(new ParticleOption("end_rod", Particle.END_ROD, "Эндер-искра", "End Rod"));
         }
+        if (options.stream().noneMatch(o -> o.id().equalsIgnoreCase("none"))) {
+            options.add(new ParticleOption("none", null, "Без партиклов", "No particles"));
+        }
 
         ParticleSettings particles = new ParticleSettings(enabled, vis, yOffset, perPetSelection, allowPlayerDisable, delayTicks, periodTicks, count, offX, offY, offZ, extra, options);
 
