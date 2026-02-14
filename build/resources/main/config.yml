@@ -110,14 +110,14 @@ effects:
 # - `effects` can be written as maps OR shorthand strings like "SPEED:0"
 pets-settings:
   # How many pets a player can have active at once
-  max-active-per-player: 1
+  max-active-per-player: 3
 
 pets:
   - id: head_1062
     permission: pats.pets.head.1062
     display:
       ru: 'Радужная овечка'
-      en: 'Радужная овечка'
+      en: 'Rainbow Sheep'
     head:
       profile-name: 'mcheads-1062'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjdlMmJmNTM5YzhlMGFkNDY4ZTUyN2I0N2NmM2EyMWQ0ZTlhY2UxODcyM2E3MjI0OWI3ZDYzZTg1ZmI4YWUwIn19fQ=='
@@ -125,7 +125,7 @@ pets:
     permission: pats.pets.head.1883
     display:
       ru: 'Белый барашек'
-      en: 'Белый барашек'
+      en: 'White Ram'
     head:
       profile-name: 'mcheads-1883'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzBlMTVhNmUxYmJjYThiNDhiZmE3NzQ4YjYyY2RkMmVmYmVmYjQ5ZjYxMWEwZjRhM2FhNGZlOTZlYjE3ZCJ9fX0='
@@ -133,7 +133,7 @@ pets:
     permission: pats.pets.head.1884
     display:
       ru: 'Фиолетовый барашек'
-      en: 'Фиолетовый барашек'
+      en: 'Purple Ram'
     head:
       profile-name: 'mcheads-1884'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGZmN2M2YmZiMmI5NTM3MjFiYjA3YTE2N2FlN2Q0NzIzNjIyZjM2OTBhMzRkMWJlOTNmNGJmNDQ4ZTUzNWZkIn19fQ=='
@@ -141,7 +141,7 @@ pets:
     permission: pats.pets.head.1885
     display:
       ru: 'Оранжевый барашек'
-      en: 'Оранжевый барашек'
+      en: 'Orange Ram'
     head:
       profile-name: 'mcheads-1885'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjllZDJjNTMzNzg4MmNhZTYzY2JmMjc2YzQxNDk1YzQzNWIzMTJmOGFiYmQ5YTU0YTRlMjQ2NTk1NWYyMSJ9fX0='
@@ -149,7 +149,7 @@ pets:
     permission: pats.pets.head.1886
     display:
       ru: 'Пурпурный барашек'
-      en: 'Пурпурный барашек'
+      en: 'Magenta Ram'
     head:
       profile-name: 'mcheads-1886'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzc2MjhiOThkNzE3YWVmYmYxOWU3NTQ2NzBiNzFlZWI5NWM1NmFhMjNhZjc4YzlhYTJlODNiOGI1NmU2NDE5In19fQ=='
@@ -157,7 +157,7 @@ pets:
     permission: pats.pets.head.1887
     display:
       ru: 'Желтый барашек'
-      en: 'Желтый барашек'
+      en: 'Yellow Ram'
     head:
       profile-name: 'mcheads-1887'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjI0NDkyZWQzY2FkMTI4YzQzOWU1MzFiMThiNjFjZDA2Y2QyNzgzMzE5NDFiNmFkNTVmYjJiM2I0NzI3YyJ9fX0='
@@ -165,7 +165,7 @@ pets:
     permission: pats.pets.head.1888
     display:
       ru: 'Светло-голубой барашек'
-      en: 'Светло-голубой барашек'
+      en: 'Light Blue Ram'
     head:
       profile-name: 'mcheads-1888'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzhmZTdlZWQyYzkxYzI1NjkxZmY5N2JhYTk5MmMyMjg3MmM3ZTQ0OWI4YjljMGRhMzFkNGEwYjZjNTdiMWUifX19'
@@ -173,7 +173,7 @@ pets:
     permission: pats.pets.head.1890
     display:
       ru: 'Лаймовый барашек'
-      en: 'Лаймовый барашек'
+      en: 'Lime Ram'
     head:
       profile-name: 'mcheads-1890'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTgzZWZlMWE5NzY3OTU0YjdhMTQzZjUxNDhkN2QzNzhlYmU2ODBiNzlkYjUxMWM3MTkxNTUzZDdlZmUzYTE1OCJ9fX0='
@@ -181,7 +181,7 @@ pets:
     permission: pats.pets.head.4461
     display:
       ru: 'Курица'
-      en: 'Курица'
+      en: 'Chicken'
     head:
       profile-name: 'mcheads-4461'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWU5NWM0MWMxNmFiY2RkMzdhNDAxZjBmZjFiNGUxMDIxMTgzNGQ0YzY4YTgzOGM2ODkxYzNhMWUyZTM5NjEifX19'
@@ -189,7 +189,7 @@ pets:
     permission: pats.pets.head.5277
     display:
       ru: 'Медведь со светлой шерстью'
-      en: 'Медведь со светлой шерстью'
+      en: 'Light-Furred Bear'
     head:
       profile-name: 'mcheads-5277'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTM3NGZkNmQxNDQ4ZmExMzBlOTI0OWFmMTk5MDIzODQ2YjhmYzg3N2YxMTdmM2FjMWM0MzQwM2JhN2ZlZjMifX19'
@@ -197,7 +197,7 @@ pets:
     permission: pats.pets.head.8667
     display:
       ru: 'Мопс с ошейником'
-      en: 'Мопс с ошейником'
+      en: 'Pug with Collar'
     head:
       profile-name: 'mcheads-8667'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzVmMjQyZWNlNmRkNzk5YTcyMmRjYmVlNTY1ZGU4ZWM0MWQwMTcyM2VmYWU1Mzg2ZDgxMzY5OWM3ZTM5ZmIifX19'
@@ -205,7 +205,7 @@ pets:
     permission: pats.pets.head.11639
     display:
       ru: 'Муха'
-      en: 'Муха'
+      en: 'Fly'
     head:
       profile-name: 'mcheads-11639'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTM4NzgwOTZjNDJjNWY4NDY0NjE4MDkwOTVmYjkwZjcyZTkxMWIwZTdhMmFhZTIyMmNkMTMyNmE2Y2NiYiJ9fX0='
@@ -213,7 +213,7 @@ pets:
     permission: pats.pets.head.18575
     display:
       ru: 'Голубь'
-      en: 'Голубь'
+      en: 'Pigeon'
     head:
       profile-name: 'mcheads-18575'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjdlYTRjMDE3ZTM0NTZjZjA5YTVjMjYzZjM0ZDNjYzVmNDE1NzdiNzRkNjBmNmY4MTk2YzYwZTA3ZjhjNWE5NiJ9fX0='
@@ -221,7 +221,7 @@ pets:
     permission: pats.pets.head.18670
     display:
       ru: 'Рыба фугу'
-      en: 'Рыба фугу'
+      en: 'Pufferfish'
     head:
       profile-name: 'mcheads-18670'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjZjM2EzY2ZmZmJiNWFmZjVmNGJiYmY0N2RiNDEyZmExYzliNGY5NmI0OWNlMGI1ZTNlZWExMGRmYzI0OTQ0YSJ9fX0='
@@ -229,7 +229,7 @@ pets:
     permission: pats.pets.head.21130
     display:
       ru: 'Снежная Лиса'
-      en: 'Снежная Лиса'
+      en: 'Arctic Fox'
     head:
       profile-name: 'mcheads-21130'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDE0MzYzNzdlYjRjNGI0ZTM5ZmIwZTFlZDg4OTlmYjYxZWUxODE0YTkxNjliOGQwODcyOWVmMDFkYzg1ZDFiYSJ9fX0='
@@ -237,7 +237,7 @@ pets:
     permission: pats.pets.head.21132
     display:
       ru: 'Лиса'
-      en: 'Лиса'
+      en: 'Fox'
     head:
       profile-name: 'mcheads-21132'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDg5NTRhNDJlNjllMDg4MWFlNmQyNGQ0MjgxNDU5YzE0NGEwZDVhOTY4YWVkMzVkNmQzZDczYTNjNjVkMjZhIn19fQ=='
@@ -245,7 +245,7 @@ pets:
     permission: pats.pets.head.22579
     display:
       ru: 'Шмель'
-      en: 'Шмель'
+      en: 'Bumblebee'
     head:
       profile-name: 'mcheads-22579'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTlkYzNmMDBlY2FiMjI0OWJiNmExNmM4YzUxMTVjZWI5ZjIzMjA1YTBkNTVjYzBlOWJhYmQyNTYyZjc5NTljNCJ9fX0='
@@ -253,7 +253,7 @@ pets:
     permission: pats.pets.head.22580
     display:
       ru: 'Улитка'
-      en: 'Улитка'
+      en: 'Snail'
     head:
       profile-name: 'mcheads-22580'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTIzYmZhMTk2ZjQ1OGU4NzBkMmM3NTgyZGNkMWY5NjkxMjg3NjUyNjJkNmZiMWEzNWJkNGJmNGIxYTExMjE3YiJ9fX0='
@@ -261,7 +261,7 @@ pets:
     permission: pats.pets.head.23190
     display:
       ru: 'Hello, Kitty'
-      en: 'Hello, Kitty'
+      en: 'Hello Kitty'
     head:
       profile-name: 'mcheads-23190'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2ExMDIwNjZhOThiZWQwMzMwZTMwMDVmMTMyZDY0NjczNTM1YzllM2RlZmViMzAxY2UyMmU2NDE4ZDZhNTk4OSJ9fX0='
@@ -269,7 +269,7 @@ pets:
     permission: pats.pets.head.23803
     display:
       ru: 'Фламинго'
-      en: 'Фламинго'
+      en: 'Flamingo'
     head:
       profile-name: 'mcheads-23803'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTkzNzJmODllNTg3ZDYwZGIwMTZjMWU5ZjNkOWFlN2NjOTgyOGMxZTRiNDAxZmYwYTc5NWMwZTU5NTUxMGZlNCJ9fX0='
@@ -277,7 +277,7 @@ pets:
     permission: pats.pets.head.23859
     display:
       ru: 'Дуолинго'
-      en: 'Дуолинго'
+      en: 'Duolingo'
     head:
       profile-name: 'mcheads-23859'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjc5NGU1NDYwMTBkYTc0NTMyMjBjNjYyNWNjZjU4Yzg4YjBlOTU1MGUzZGViNTQzYjM0NWU1MTY5ZWQxYzVmIn19fQ=='
@@ -285,7 +285,7 @@ pets:
     permission: pats.pets.head.26117
     display:
       ru: 'Лягушачья тыква'
-      en: 'Лягушачья тыква'
+      en: 'Frog Pumpkin'
     head:
       profile-name: 'mcheads-26117'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODMxODE3ZGExZTE3MWEzN2E5MDc3ZDliZGExYTFiZmNhZjVmOWEzNWRjOTM5MTc1MWRiZGE0NDg1MTJlMzI4YSJ9fX0='
@@ -293,7 +293,7 @@ pets:
     permission: pats.pets.head.26211
     display:
       ru: 'Паук'
-      en: 'Паук'
+      en: 'Spider'
     head:
       profile-name: 'mcheads-26211'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzM4ODE3M2Y0ZjgyYTE0MTUzZTA4NmJmMTM3OTA3MjU2ZTUxMmIyMTczMWYwNDcwMDQ3YmYyZDQ1MzU0NWQyMSJ9fX0='
@@ -301,15 +301,15 @@ pets:
     permission: pats.pets.head.26212
     display:
       ru: 'Пещерный паук'
-      en: 'Пещерный паук'
+      en: 'Cave Spider'
     head:
       profile-name: 'mcheads-26212'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTNkMThkYWQwYmQ5MGYwMmFjMDg3NTRhNzUzNThiMWMyN2RhNTc5YjNjYTM1YjY5ZTZiYjEwYTdhNWMyZGJkYSJ9fX0='
   - id: head_27207
     permission: pats.pets.head.27207
     display:
-      ru: 'Тропическая рыба (томатная рыба-клоун) — 33734'
-      en: 'Тропическая рыба (томатная рыба-клоун) — 33734'
+      ru: 'Тропическая рыба (томатная рыба-клоун)'
+      en: 'Tropical Fish (Tomato Clownfish)'
     head:
       profile-name: 'mcheads-27207'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2U5MmYwYjBmNzljN2JhOWRjODE1NzdiZTMzYTVjNzEzZmJlMzk3MjgyNmI0NGJjZjI2ZmViNmNjMTJiNjQzNCJ9fX0='
@@ -317,15 +317,15 @@ pets:
     permission: pats.pets.head.27210
     display:
       ru: 'Тропическая рыба (королевская рыба-ангел)'
-      en: 'Тропическая рыба (королевская рыба-ангел)'
+      en: 'Tropical Fish (Regal Angelfish)'
     head:
       profile-name: 'mcheads-27210'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWRmYjRkN2RmZjU0NTZkZTcwNDk2NDE0ZTg3NGM2NjUwYTFlODM5NTYzY2M3NWQ0Yjk5MzgwYjIxNmNmZGJjZCJ9fX0='
   - id: head_27211
     permission: pats.pets.head.27211
     display:
-      ru: 'Тропическая рыба (рыба-попугай) — 33738'
-      en: 'Тропическая рыба (рыба-попугай) — 33738'
+      ru: 'Тропическая рыба (рыба-попугай)'
+      en: 'Tropical Fish (Parrotfish)'
     head:
       profile-name: 'mcheads-27211'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmExNmY1Mjg4YjRkZmMzNDQ4NmNjMjBiNjFhZDIwYzRiNGFjNmIxMzdiZjljODMxMTg3OTk3ZDAwMmVmNWVmNiJ9fX0='
@@ -333,7 +333,7 @@ pets:
     permission: pats.pets.head.27212
     display:
       ru: 'Тропическая рыба (козлиная рыба)'
-      en: 'Тропическая рыба (козлиная рыба)'
+      en: 'Tropical Fish (Goatfish)'
     head:
       profile-name: 'mcheads-27212'
       textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWRjNDdiNDBhYzMxMDM0YTZhYzAyOGNlNWU5NmQ2YWUyNzBiNzM5Zjc0MmIzNTU3MmE5OTk0N2I5MzA2YmQ3In19fQ=='

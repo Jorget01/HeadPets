@@ -18,7 +18,7 @@ menu:
     off: "Off"
     disabled: "Disabled on server"
   pet:
-    locked: "No access (perms)."
+    locked: "No access."
     active: "Active"
     inactive: "Inactive"
     left_toggle_on: "LMB: activate"
@@ -33,7 +33,7 @@ menu:
     page: "Page {page}/{pages}"
   empty:
     title: "No available pets"
-    hint: "Grant the required permissions."
+    hint: ""
 
 msg:
   no_permission_pet: "You don't have access to this pet."
