@@ -1,14 +1,14 @@
 ﻿settings:
   language:
-    # auto -> based on player locale (ru_* => ru, else en)
-    # fixed -> always use `fixed`
+    # auto  -> по локали игрока (ru_* => ru, иначе en)
+    # fixed -> всегда использовать `fixed`
     mode: auto
     fixed: ru
-    # if true, player can override (stored in data.yml)
+    # если true — игрок может выбрать язык (сохраняется в data.yml)
     allow-player-override: true
 
 menu:
-  # Show pets without permission in "All pets" tab
+  # Показывать питомцев без прав во вкладке "Все питомцы"
   show-locked-in-all: true
   gui:
     size: 54
@@ -33,7 +33,7 @@ menu:
       page-info: PAPER
       empty: PAPER
     grid:
-      # area where pets are rendered (default is 4 rows x 7 cols like classic GUI)
+      # Область, где отображаются питомцы (по умолчанию 4 ряда x 7 колонок)
       start-row: 2
       start-col: 2
       rows: 4
@@ -51,11 +51,11 @@ particles:
   enabled: true
   # all | owner
   visibility: all
-  # vertical offset from pet entity location to spawn particles (armorstand head)
+  # смещение по Y от позиции питомца, где спавнятся партиклы (в районе головы стойки)
   y-offset: 1.0
-  # allow players to select particles per pet (stored in data.yml)
+  # разрешить выбор партиклов для каждого питомца отдельно (сохраняется в data.yml)
   per-pet-selection: true
-  # allow players to disable particles for themselves (stored in data.yml)
+  # разрешить игроку отключать партиклы для себя (сохраняется в data.yml)
   allow-player-disable: true
   delay-ticks: 10
   period-ticks: 6
@@ -96,20 +96,27 @@ particles:
         ru: "Криты"
         en: "Crit"
 
-# Passive potion effects while a pet is active.
+# Пассивные эффекты зелий, пока питомец активен.
 effects:
   enabled: true
   period-ticks: 40
   duration-ticks: 80
   remove-on-deactivate: true
 
-# Add pets here. You can add more entries.
-# Tips:
-# - `permission` is optional (default: pats.pets.<id>)
-# - `display` can be a string (same for ru/en) or a map {ru/en}
-# - `effects` can be written as maps OR shorthand strings like "SPEED:0"
+# Добавляй питомцев тут. Можно добавлять сколько угодно.
+# Подсказки:
+# - `permission` можно не указывать (по умолчанию: pats.pets.<id>)
+# - `display` может быть строкой (одинаково для ru/en) или мапой {ru/en}
+# - `effects` задаются на уровне питомца и будут применяться пассивно, пока питомец активен
+#   Пример:
+#   effects:
+#     - type: SPEED
+#       amplifier: 0   # 0 = Speed I, 1 = Speed II и т.д.
+#     - type: JUMP_BOOST
+#       amplifier: 1
+#   Можно также кратко: effects: ["SPEED:0", "JUMP_BOOST:1"]
 pets-settings:
-  # How many pets a player can have active at once
+  # Сколько питомцев может быть активно одновременно у игрока
   max-active-per-player: 3
 
 pets:
