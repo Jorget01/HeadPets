@@ -1,122 +1,106 @@
 # HeadPets
 
-Плагин добавляет питомцев в виде летающих голов игроков (ArmorStand + Player Head), меню с вкладками и выбором партиклов/эффектов.
+This plugin adds pets as floating player heads (invisible `ArmorStand` + `Player Head`), with a GUI menu, tabs, pagination, particles and passive effects.
+<img src="https://github.com/Jorget01/HeadPets/blob/main/media/0215.gif" alt="HUD" width="100%"/>
+## Features
 
-## Возможности
+- `/pets` opens the menu.
+- Tabs:
+  - **All pets** — shows every pet, including locked ones (if enabled in config).
+  - **My pets** — shows only pets the player has permission for.
+- Pages:
+  - Navigation arrows at the bottom switch pages.
+- Pet activation:
+  - **Left click** a pet — activate/deactivate (pet floats near the player and follows them).
+  - Multiple pets can be active at once (limit is `pets-settings.max-active-per-player`).
+- Particles:
+  - **Particles** button — selects the player’s global particle type (**LMB** next, **RMB** previous).
+  - **Shift+LMB** on **Particles** — enable/disable particles (if `particles.allow-player-disable` is enabled).
+  - If `particles.per-pet-selection` is enabled, you can select particles **per pet**:
+    - **RMB** on a pet — next particle
+    - **Shift+RMB** on a pet — previous particle
+  - Particles can be visible for everyone or only for the owner (config).
+- Passive effects:
+  - Each pet can apply potion effects while it is active (config).
+- Languages:
+  - Russian and English (`lang/ru.yml`, `lang/en.yml`)
+  - `settings.language.mode: auto` selects language by player locale (ru => Russian, otherwise English).
 
-- Команда `/pets` открывает меню.
-- Вкладки:
-  - **Все питомцы** — показывает всех питомцев, включая недоступных (если включено в конфиге).
-  - **Мои питомцы** — показывает только питомцев, к которым у игрока есть доступ (permission).
-- Страницы:
-  - Стрелки внизу меню перелистывают список питомцев.
-- Активация питомца:
-  - ЛКМ по питомцу — активировать/деактивировать (питомец летает рядом и следует за игроком).
-  - Можно активировать несколько питомцев (лимит настраивается в `pets-settings.max-active-per-player`).
-- Партиклы:
-  - Кнопка **Партиклы** в меню — выбирает общий тип партиклов игрока (ЛКМ следующий, ПКМ предыдущий).
-  - Shift+ЛКМ по кнопке **Партиклы** — вкл/выкл партиклы (если включено `particles.allow-player-disable`).
-  - Если включено `particles.per-pet-selection`, то можно выбрать партиклы **для конкретного питомца**:
-    - ПКМ по питомцу — следующий партикл
-    - Shift+ПКМ по питомцу — предыдущий партикл
-  - Партиклы могут быть видны всем или только владельцу (настраивается в конфиге).
-- Пассивные эффекты:
-  - Каждый питомец может давать игроку potion-эффекты, пока активен (настраивается в конфиге).
-- Языки:
-  - Русский и английский (`lang/ru.yml`, `lang/en.yml`)
-  - `settings.language.mode: auto` выбирает язык по locale игрока (ru => русский, иначе английский).
+## Commands & permissions
 
-## Установка
+- `/pets` — open menu
+  - permission: `pats.pets.open` (default: true)
+- `/pets reload` or `/petsreload` — reload config/lang/pets (no server restart)
+  - permission: `pats.pets.reload` (default: op)
+- `/pets add ...` or `/petadd ...` — add a pet to `config.yml`
+  - permission: `pats.pets.admin` (default: op)
+- `/pets remove <id>` or `/petremove <id>` — remove a pet from `config.yml`
+  - permission: `pats.pets.admin` (default: op)
 
-1. Собери или возьми готовый jar.
-2. Положи jar в `plugins/` Paper сервера.
-3. Перезапусти сервер.
+Access to a specific pet is controlled via the pet’s `permission` in `config.yml` (for example: `pats.pets.head.118`).
 
-Файлы появятся здесь:
-- `plugins/PatsPets/config.yml`
-- `plugins/PatsPets/data.yml`
-- `plugins/PatsPets/lang/ru.yml`
-- `plugins/PatsPets/lang/en.yml`
+### Command examples
 
-## Сборка
+Add a pet (one name will be used for both RU/EN):
 
-Windows:
-```bat
-.\gradlew.bat clean build
+```text
+/petadd head_test eyJ0ZXh0dXJlcyI6... Donkey_Kong
 ```
 
-Готовый jar:
-- `build/libs/pats-plugin-1.0.0.jar`
-
-## Команды и permissions
-
-- `/pets` — открыть меню
-  - permission: `pats.pets.open` (default: true)
-- `/pets reload` или `/petsreload` — перезагрузить конфиг/языки/питомцев (без перезапуска сервера)
-  - permission: `pats.pets.reload` (default: op)
-- `/pets add ...` или `/petadd ...` — добавить питомца в `config.yml`
-  - permission: `pats.pets.admin` (default: op)
-- `/pets remove <id>` или `/petremove <id>` — удалить питомца из `config.yml`
-  - permission: `pats.pets.admin` (default: op)
-
-Доступ к конкретным питомцам задаётся через `permission` у питомца в `config.yml` (например `pats.pets.head.118`).
-
-### Примеры команд
-
-Добавить питомца:
+Add a pet (different names for RU/EN):
 
 ```text
 /petadd head_test eyJ0ZXh0dXJlcyI6... Донки_Конг Donkey_Kong
 ```
 
-Удалить питомца:
+Remove a pet:
 
 ```text
 /petremove head_test
 ```
 
-## Конфиг
+## Config
 
-Основные секции `config.yml`:
+Main `config.yml` sections:
 
-- `settings.language` — выбор языка (`auto` / `fixed`).
-- `menu.show-locked-in-all` — показывать ли недоступных питомцев во вкладке “Все”.
-- `menu.gui.*` — настройка GUI (размер, слоты кнопок, материалы, область сетки питомцев).
-- `follow.*` — дистанции/скорости следования питомца.
-- `particles.*` — настройки партиклов (видимость, частота, `y-offset`, список опций).
-- `effects.*` — частота/длительность пассивных эффектов.
-- `pets:` — список питомцев (можно добавлять новые).
+- `settings.language` — language settings (`auto` / `fixed`).
+- `menu.show-locked-in-all` — show locked pets in “All pets” tab.
+- `menu.gui.*` — GUI settings (size, button slots, materials, pets grid area).
+- `follow.*` — follow distances/speeds.
+- `particles.*` — particles settings (visibility, frequency, `y-offset`, options list).
+- `effects.*` — passive effects timing settings.
+- `pets:` — pets list (add your own pets here).
 
-### Цвета (HEX)
+### Colors (HEX)
 
-Во многих строках (например названия питомцев, сообщения, лор) можно использовать цвет-коды:
+You can use color codes in many strings (pet names, messages, lore):
 
-- `&a`, `&c`, `&7` и т.п.
-- HEX: `&#ff00ff` (пример: `&#ff00ffДонки Конг`)
+- Legacy: `&a`, `&c`, `&7`, etc.
+- HEX: `&#ff00ff` (example: `&#ff00ffDonkey Kong`)
 
-### Пример питомца
+### Pet example
 
 ```yml
 pets:
   - id: head_118
-    # permission optional (default: pats.pets.<id>)
+    # permission is optional (default: pats.pets.<id>)
     permission: pats.pets.head.118
     display:
       ru: "Донки Конг"
       en: "Donkey Kong"
     head:
-      # profile-id optional
+      # profile-id is optional
       profile-name: "mcheads-118"
       textures: "BASE64_TEXTURES_HERE"
     effects:
       - type: SPEED
         amplifier: 0
       # shorthand:
-      - "JUMP:0"
+      - "JUMP_BOOST:0"
 ```
 
-## Примечания
+## Notes
 
-- Выбранные партиклы и языковые настройки игрока сохраняются в `plugins/PatsPets/data.yml`.
-- Активные питомцы сохраняются в `plugins/PatsPets/data.yml` и восстанавливаются при перезаходе.
-- По умолчанию эффекты снимаются при деактивации питомца (`effects.remove-on-deactivate: true`), но можно выключить и тогда они будут просто заканчиваться по `effects.duration-ticks`.
+- Player particle choice and language override are stored in `plugins/PatsPets/data.yml`.
+- Active pets are stored in `plugins/PatsPets/data.yml` and restored when the player rejoins.
+- By default, effects are removed when a pet is deactivated (`effects.remove-on-deactivate: true`). If disabled, effects will simply expire based on `effects.duration-ticks`.
