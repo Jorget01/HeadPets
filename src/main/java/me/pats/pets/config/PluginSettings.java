@@ -162,7 +162,17 @@ public final class PluginSettings {
             GuiGrid grid
     ) {}
 
-    public record GuiSlots(int tabAll, int tabMine, int particles, int pagePrev, int pageInfo, int pageNext) {}
+    public record GuiSlots(
+            int tabAll,
+            int tabMine,
+            int filterAll,
+            int filterWithEffects,
+            int filterWithoutEffects,
+            int particles,
+            int pagePrev,
+            int pageInfo,
+            int pageNext
+    ) {}
 
     public record GuiItems(
             Material tabSelected,
@@ -219,12 +229,15 @@ public final class PluginSettings {
 
         ConfigurationSection frame = guiSec == null ? null : guiSec.getConfigurationSection("frame");
         boolean frameEnabled = frame == null || frame.getBoolean("enabled", true);
-        Material frameMaterial = material(plugin, frame == null ? null : frame.getString("material"), Material.GRAY_STAINED_GLASS_PANE);
+        Material frameMaterial = material(plugin, frame == null ? null : frame.getString("material"), Material.LIME_STAINED_GLASS_PANE);
 
         ConfigurationSection slots = guiSec == null ? null : guiSec.getConfigurationSection("slots");
         GuiSlots guiSlots = new GuiSlots(
                 clampSlot(slots == null ? 0 : slots.getInt("tab-all", 0), size),
                 clampSlot(slots == null ? 1 : slots.getInt("tab-mine", 1), size),
+                clampSlot(slots == null ? 3 : slots.getInt("filter-all", 3), size),
+                clampSlot(slots == null ? 4 : slots.getInt("filter-with-effects", 4), size),
+                clampSlot(slots == null ? 5 : slots.getInt("filter-without-effects", 5), size),
                 clampSlot(slots == null ? 49 : slots.getInt("particles", 49), size),
                 clampSlot(slots == null ? 45 : slots.getInt("page-prev", 45), size),
                 clampSlot(slots == null ? 51 : slots.getInt("page-info", 51), size),
@@ -233,8 +246,8 @@ public final class PluginSettings {
 
         ConfigurationSection items = guiSec == null ? null : guiSec.getConfigurationSection("items");
         GuiItems guiItems = new GuiItems(
-                material(plugin, items == null ? null : items.getString("tab-selected"), Material.LIME_STAINED_GLASS_PANE),
-                material(plugin, items == null ? null : items.getString("tab-unselected"), Material.BLUE_STAINED_GLASS_PANE),
+                material(plugin, items == null ? null : items.getString("tab-selected"), Material.EMERALD_BLOCK),
+                material(plugin, items == null ? null : items.getString("tab-unselected"), Material.CYAN_STAINED_GLASS_PANE),
                 material(plugin, items == null ? null : items.getString("particles"), Material.BLAZE_POWDER),
                 material(plugin, items == null ? null : items.getString("nav"), Material.ARROW),
                 material(plugin, items == null ? null : items.getString("page-info"), Material.PAPER),

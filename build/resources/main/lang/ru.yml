@@ -1,8 +1,12 @@
 menu:
-  title: "Питомцы • {tab}"
+  title: "&#7CFF6BПитомцы &#3DFFB6• &#FFFFFF{tab}"
   tab:
     all: "Все питомцы"
     mine: "Мои питомцы"
+  filter:
+    all: "Все"
+    with_effects: "С эффектами"
+    without_effects: "Без эффектов"
   selected: "Выбрано"
   click_to_open: "Нажми чтобы открыть"
   particles:
@@ -24,8 +28,8 @@ menu:
     shift_right_particle_prev: "Shift+ПКМ: предыдущие"
     effects_title: "Эффекты"
   nav:
-    prev: "Назад"
-    next: "Вперед"
+    prev: "◀ Назад"
+    next: "Вперед ▶"
     page: "Страница {page}/{pages}"
   empty:
     title: "Нет доступных питомцев"

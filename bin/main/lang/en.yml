@@ -1,8 +1,12 @@
 menu:
-  title: "Pets • {tab}"
+  title: "&#7CFF6BPets &#3DFFB6• &#FFFFFF{tab}"
   tab:
     all: "All pets"
     mine: "My pets"
+  filter:
+    all: "All"
+    with_effects: "With effects"
+    without_effects: "Without effects"
   selected: "Selected"
   click_to_open: "Click to open"
   particles:
@@ -24,8 +28,8 @@ menu:
     shift_right_particle_prev: "Shift+RMB: previous"
     effects_title: "Effects"
   nav:
-    prev: "Previous"
-    next: "Next"
+    prev: "◀ Previous"
+    next: "Next ▶"
     page: "Page {page}/{pages}"
   empty:
     title: "No available pets"

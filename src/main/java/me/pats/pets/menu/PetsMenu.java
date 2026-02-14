@@ -52,27 +52,30 @@ public final class PetsMenu implements Listener {
     }
 
     public void open(Player player) {
-        open(player, View.ALL, 0);
+        open(player, View.ALL, EffectFilter.ALL, 0);
     }
 
-    private void open(Player player, View view, int page) {
-        player.openInventory(createInventory(player, view, page));
+    private void open(Player player, View view, EffectFilter filter, int page) {
+        player.openInventory(createInventory(player, view, filter, page));
     }
 
-    private Inventory createInventory(Player player, View view, int page) {
+    private Inventory createInventory(Player player, View view, EffectFilter filter, int page) {
         Language lang = i18n.language(player);
         String tabTitle = i18n.tr(player, view == View.ALL ? "menu.tab.all" : "menu.tab.mine");
         String title = i18n.tr(player, "menu.title", Map.of("tab", tabTitle));
 
-        var holder = new PetsMenuHolder(player.getUniqueId(), view, page);
+        var holder = new PetsMenuHolder(player.getUniqueId(), view, filter, page);
         int size = settings.menu().gui().size();
-        var inventory = Bukkit.createInventory(holder, size, Component.text(title, NamedTextColor.GOLD));
+        var inventory = Bukkit.createInventory(holder, size, Text.parse(title).decoration(TextDecoration.ITALIC, false));
         holder.setInventory(inventory);
 
         paintFrame(inventory);
         var slots = settings.menu().gui().slots();
         inventory.setItem(slots.tabAll(), createTabItem(player, "menu.tab.all", view == View.ALL, "tab_all"));
         inventory.setItem(slots.tabMine(), createTabItem(player, "menu.tab.mine", view == View.MINE, "tab_mine"));
+        inventory.setItem(slots.filterAll(), createFilterItem(player, lang, filter == EffectFilter.ALL, "menu.filter.all", "filter_all"));
+        inventory.setItem(slots.filterWithEffects(), createFilterItem(player, lang, filter == EffectFilter.WITH_EFFECTS, "menu.filter.with_effects", "filter_with"));
+        inventory.setItem(slots.filterWithoutEffects(), createFilterItem(player, lang, filter == EffectFilter.WITHOUT_EFFECTS, "menu.filter.without_effects", "filter_without"));
         inventory.setItem(slots.particles(), createParticleItem(player, lang));
         inventory.setItem(slots.pagePrev(), createNavItem(player, "menu.nav.prev", "page_prev"));
         inventory.setItem(slots.pageNext(), createNavItem(player, "menu.nav.next", "page_next"));
@@ -82,6 +85,10 @@ public final class PetsMenu implements Listener {
             boolean hasAccess = player.hasPermission(pet.permission());
             if (view == View.MINE && !hasAccess) continue;
             if (view == View.ALL && !settings.menu().showLockedInAll() && !hasAccess) continue;
+
+            boolean hasEffects = !pet.passiveEffects().effects().isEmpty();
+            if (filter == EffectFilter.WITH_EFFECTS && !hasEffects) continue;
+            if (filter == EffectFilter.WITHOUT_EFFECTS && hasEffects) continue;
 
             filtered.add(pet);
         }
@@ -136,7 +143,8 @@ public final class PetsMenu implements Listener {
         Material material = selected ? settings.menu().gui().items().tabSelected() : settings.menu().gui().items().tabUnselected();
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(name, selected ? NamedTextColor.GREEN : NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+        String prefix = selected ? "&#7CFF6B" : "&#7CD9FF";
+        meta.displayName(Text.parse(prefix + name).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
                 Component.text(i18n.tr(player, selected ? "menu.selected" : "menu.click_to_open"), NamedTextColor.GRAY)
                         .decoration(TextDecoration.ITALIC, false)
@@ -146,10 +154,25 @@ public final class PetsMenu implements Listener {
         return item;
     }
 
+    private ItemStack createFilterItem(Player player, Language lang, boolean selected, String titleKey, String action) {
+        String name = i18n.tr(player, titleKey);
+        Material material = selected ? settings.menu().gui().items().tabSelected() : settings.menu().gui().items().tabUnselected();
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        String prefix = selected ? "&#FFD15C" : "&#B0B0B0";
+        meta.displayName(Text.parse(prefix + name).decoration(TextDecoration.ITALIC, false));
+        meta.lore(List.of(
+                Text.parse("&8" + i18n.tr(player, "menu.click_to_open")).decoration(TextDecoration.ITALIC, false)
+        ));
+        meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private ItemStack createNavItem(Player player, String titleKey, String action) {
         ItemStack item = new ItemStack(settings.menu().gui().items().nav());
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(i18n.tr(player, titleKey), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Text.parse("&#FFFFFF" + i18n.tr(player, titleKey)).decoration(TextDecoration.ITALIC, false));
         meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action);
         item.setItemMeta(meta);
         return item;
@@ -158,7 +181,7 @@ public final class PetsMenu implements Listener {
     private ItemStack createPageItem(Player player, int page, int pages) {
         ItemStack item = new ItemStack(settings.menu().gui().items().pageInfo());
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(i18n.tr(player, "menu.nav.page", Map.of("page", String.valueOf(page), "pages", String.valueOf(pages))), NamedTextColor.GRAY)
+        meta.displayName(Text.parse("&#C8C8C8" + i18n.tr(player, "menu.nav.page", Map.of("page", String.valueOf(page), "pages", String.valueOf(pages))))
                 .decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
@@ -169,7 +192,7 @@ public final class PetsMenu implements Listener {
         if (!ps.enabled() || ps.options().isEmpty()) {
             ItemStack item = new ItemStack(Material.BARRIER);
             ItemMeta meta = item.getItemMeta();
-            meta.displayName(Text.parse("&6" + i18n.tr(player, "menu.particles.title")).decoration(TextDecoration.ITALIC, false));
+            meta.displayName(Text.parse("&#FF7CF2" + i18n.tr(player, "menu.particles.title")).decoration(TextDecoration.ITALIC, false));
             meta.lore(List.of(Text.parse("&7" + i18n.tr(player, "menu.particles.disabled")).decoration(TextDecoration.ITALIC, false)));
             item.setItemMeta(meta);
             return item;
@@ -185,7 +208,7 @@ public final class PetsMenu implements Listener {
 
         ItemStack item = new ItemStack(settings.menu().gui().items().particles());
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Text.parse("&6" + i18n.tr(player, "menu.particles.title")).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Text.parse("&#FF7CF2" + i18n.tr(player, "menu.particles.title")).decoration(TextDecoration.ITALIC, false));
         String currentName = enabled ? option.displayName(lang) : i18n.tr(player, "menu.particles.off");
         List<Component> lore = new ArrayList<>();
         lore.add(Text.parse("&b" + i18n.tr(player, "menu.particles.current", Map.of("name", currentName))).decoration(TextDecoration.ITALIC, false));
@@ -334,18 +357,21 @@ public final class PetsMenu implements Listener {
         String action = getAction(clicked);
         if (action != null) {
             switch (action) {
-                case "tab_all" -> open(player, View.ALL, 0);
-                case "tab_mine" -> open(player, View.MINE, 0);
+                case "tab_all" -> open(player, View.ALL, holder.filter(), 0);
+                case "tab_mine" -> open(player, View.MINE, holder.filter(), 0);
+                case "filter_all" -> open(player, holder.view(), EffectFilter.ALL, 0);
+                case "filter_with" -> open(player, holder.view(), EffectFilter.WITH_EFFECTS, 0);
+                case "filter_without" -> open(player, holder.view(), EffectFilter.WITHOUT_EFFECTS, 0);
                 case "particle" -> {
                     if (event.getClick() == ClickType.SHIFT_LEFT) {
                         toggleParticles(player);
                     } else {
                         cycleParticle(player, event.isRightClick() ? -1 : 1);
                     }
-                    Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.page()));
+                    Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.filter(), holder.page()));
                 }
-                case "page_prev" -> Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.page() - 1));
-                case "page_next" -> Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.page() + 1));
+                case "page_prev" -> Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.filter(), holder.page() - 1));
+                case "page_next" -> Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.filter(), holder.page() + 1));
             }
             return;
         }
@@ -370,7 +396,7 @@ public final class PetsMenu implements Listener {
             petManager.togglePet(player, pet);
         }
 
-        Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.page()));
+        Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.filter(), holder.page()));
     }
 
     private boolean isParticleClick(ClickType click) {
@@ -452,12 +478,14 @@ public final class PetsMenu implements Listener {
     private static final class PetsMenuHolder implements InventoryHolder {
         private final UUID playerId;
         private final View view;
+        private final EffectFilter filter;
         private int page;
         private Inventory inventory;
 
-        private PetsMenuHolder(UUID playerId, View view, int page) {
+        private PetsMenuHolder(UUID playerId, View view, EffectFilter filter, int page) {
             this.playerId = playerId;
             this.view = view;
+            this.filter = filter;
             this.page = page;
         }
 
@@ -467,6 +495,10 @@ public final class PetsMenu implements Listener {
 
         View view() {
             return view;
+        }
+
+        EffectFilter filter() {
+            return filter;
         }
 
         int page() {
@@ -490,5 +522,11 @@ public final class PetsMenu implements Listener {
     private enum View {
         ALL,
         MINE
+    }
+
+    private enum EffectFilter {
+        ALL,
+        WITH_EFFECTS,
+        WITHOUT_EFFECTS
     }
 }
