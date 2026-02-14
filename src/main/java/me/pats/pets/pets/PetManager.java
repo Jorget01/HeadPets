@@ -3,8 +3,7 @@ package me.pats.pets.pets;
 import me.pats.pets.config.PluginSettings;
 import me.pats.pets.i18n.I18n;
 import me.pats.pets.i18n.Language;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import me.pats.pets.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -17,7 +16,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -34,6 +35,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PetManager implements Listener {
@@ -47,7 +50,7 @@ public final class PetManager implements Listener {
     private final PetRegistry pets;
     private final NamespacedKey petOwnerKey;
     private final NamespacedKey petIdKey;
-    private final Map<UUID, ActivePet> activePets = new ConcurrentHashMap<>();
+    private final Map<UUID, CopyOnWriteArrayList<ActivePet>> activePets = new ConcurrentHashMap<>();
     private BukkitTask followTask;
     private BukkitTask particleTask;
     private BukkitTask effectTask;
@@ -82,34 +85,60 @@ public final class PetManager implements Listener {
             effectTask.cancel();
             effectTask = null;
         }
-        for (ActivePet active : activePets.values()) {
-            removeEntity(active.entityId());
+        for (CopyOnWriteArrayList<ActivePet> list : activePets.values()) {
+            for (ActivePet active : list) {
+                removeEntity(active.entityId());
+            }
         }
         activePets.clear();
     }
 
     public String getActivePetId(UUID playerId) {
-        ActivePet activePet = activePets.get(playerId);
-        return activePet == null ? null : activePet.petId();
+        CopyOnWriteArrayList<ActivePet> list = activePets.get(playerId);
+        if (list == null || list.isEmpty()) return null;
+        return list.get(0).petId();
+    }
+
+    public boolean isPetActive(UUID playerId, String petId) {
+        CopyOnWriteArrayList<ActivePet> list = activePets.get(playerId);
+        if (list == null) return false;
+        for (ActivePet active : list) {
+            if (active.petId().equalsIgnoreCase(petId)) return true;
+        }
+        return false;
     }
 
     public void togglePet(Player player, Pet pet) {
         UUID playerId = player.getUniqueId();
-        ActivePet current = activePets.get(playerId);
-        if (current != null && Objects.equals(current.petId(), pet.id())) {
-            deactivate(playerId);
-            player.sendMessage(Component.text(i18n.tr(player, "msg.pet_deactivated"), NamedTextColor.GRAY));
+        CopyOnWriteArrayList<ActivePet> list = activePets.computeIfAbsent(playerId, k -> new CopyOnWriteArrayList<>());
+        ActivePet existing = findActive(list, pet.id());
+        if (existing != null) {
+            deactivate(playerId, existing);
+            player.sendMessage(Text.parse("&7" + i18n.tr(player, "msg.pet_deactivated")));
             return;
         }
 
-        deactivate(playerId);
-        activate(player, pet);
+        int max = settings.pets().maxActivePerPlayer();
+        if (list.size() >= max) {
+            player.sendMessage(Text.parse("&c" + i18n.tr(player, "msg.pet_limit", Map.of("max", String.valueOf(max)))));
+            return;
+        }
+
+        ActivePet active = activate(player, pet);
+        if (active != null) {
+            list.add(active);
+            dataStore.addActivePet(playerId, pet.id());
+            dataStore.save();
+        }
         Language lang = i18n.language(player);
-        player.sendMessage(Component.text(i18n.tr(player, "msg.pet_activated", Map.of("name", pet.displayName(lang))), NamedTextColor.GREEN));
+        player.sendMessage(Text.parse("&a" + i18n.tr(player, "msg.pet_activated", Map.of("name", pet.displayName(lang)))));
     }
 
-    private void activate(Player player, Pet pet) {
-        Location spawn = computeTarget(player.getLocation());
+    private ActivePet activate(Player player, Pet pet) {
+        CopyOnWriteArrayList<ActivePet> list = activePets.computeIfAbsent(player.getUniqueId(), k -> new CopyOnWriteArrayList<>());
+        int index = list.size();
+        int total = Math.max(1, list.size() + 1);
+        Location spawn = computeTarget(player.getLocation(), index, total);
         ArmorStand stand = player.getWorld().spawn(spawn, ArmorStand.class, as -> {
             as.setSilent(true);
             as.setInvulnerable(true);
@@ -130,22 +159,56 @@ public final class PetManager implements Listener {
             }
         });
 
-        activePets.put(player.getUniqueId(), new ActivePet(pet.id(), stand.getUniqueId()));
+        return new ActivePet(pet.id(), stand.getUniqueId());
     }
 
-    private void deactivate(UUID playerId) {
-        ActivePet active = activePets.remove(playerId);
-        if (active != null) {
-            if (settings.effects().enabled() && settings.effects().removeOnDeactivate()) {
-                Player player = Bukkit.getPlayer(playerId);
-                if (player != null && player.isOnline()) {
-                    Pet pet = pets.byId(active.petId());
-                    if (pet != null) {
-                        removePassiveEffects(player, pet);
-                    }
+    private ActivePet activate(Player player, Pet pet, int index, int total) {
+        Location spawn = computeTarget(player.getLocation(), index, total);
+        ArmorStand stand = player.getWorld().spawn(spawn, ArmorStand.class, as -> {
+            as.setSilent(true);
+            as.setInvulnerable(true);
+            as.setRemoveWhenFarAway(false);
+            as.setPersistent(true);
+            as.setCustomNameVisible(false);
+            as.setCollidable(false);
+            as.setGravity(false);
+            as.setVisible(false);
+            as.setSmall(true);
+            as.setMarker(true);
+            as.setBasePlate(false);
+            as.addScoreboardTag(PET_TAG);
+            as.getPersistentDataContainer().set(petOwnerKey, PersistentDataType.STRING, player.getUniqueId().toString());
+            as.getPersistentDataContainer().set(petIdKey, PersistentDataType.STRING, pet.id());
+            if (as.getEquipment() != null) {
+                as.getEquipment().setHelmet(pet.iconItem());
+            }
+        });
+        return new ActivePet(pet.id(), stand.getUniqueId());
+    }
+
+    private void deactivate(UUID playerId, ActivePet active) {
+        CopyOnWriteArrayList<ActivePet> list = activePets.get(playerId);
+        if (list == null) return;
+        boolean removed = list.remove(active);
+        if (!removed) return;
+
+        dataStore.removeActivePet(playerId, active.petId());
+        dataStore.save();
+
+        if (settings.effects().enabled() && settings.effects().removeOnDeactivate()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null && player.isOnline()) {
+                Pet pet = pets.byId(active.petId());
+                if (pet != null) {
+                    removePassiveEffects(player, pet, list);
                 }
             }
-            removeEntity(active.entityId());
+        }
+
+        removeEntity(active.entityId());
+
+        if (list.isEmpty()) {
+            activePets.remove(playerId, list);
         }
     }
 
@@ -158,51 +221,65 @@ public final class PetManager implements Listener {
 
     private void startFollowTask() {
         this.followTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Map.Entry<UUID, ActivePet> entry : activePets.entrySet()) {
+            for (Map.Entry<UUID, CopyOnWriteArrayList<ActivePet>> entry : activePets.entrySet()) {
                 UUID playerId = entry.getKey();
-                ActivePet active = entry.getValue();
-
+                CopyOnWriteArrayList<ActivePet> list = entry.getValue();
                 Player player = Bukkit.getPlayer(playerId);
                 if (player == null || !player.isOnline()) {
-                    removeEntity(active.entityId());
-                    activePets.remove(playerId, active);
+                    for (ActivePet active : list) {
+                        removeEntity(active.entityId());
+                    }
+                    activePets.remove(playerId, list);
                     continue;
                 }
 
-                Entity entity = Bukkit.getEntity(active.entityId());
-                if (!(entity instanceof LivingEntity living) || living.isDead() || !living.isValid()) {
-                    activePets.remove(playerId, active);
-                    continue;
+                int total = Math.max(1, list.size());
+                for (int idx = 0; idx < list.size(); idx++) {
+                    ActivePet active = list.get(idx);
+                    Entity entity = Bukkit.getEntity(active.entityId());
+                    if (!(entity instanceof LivingEntity living) || living.isDead() || !living.isValid()) {
+                        list.remove(active);
+                        continue;
+                    }
+
+                    if (!player.getWorld().equals(living.getWorld())) {
+                        living.teleport(player.getLocation());
+                        continue;
+                    }
+
+                    Location playerLoc = player.getLocation();
+                    Location petLoc = living.getLocation();
+                    Location target = computeTarget(playerLoc, idx, total);
+                    Vector deltaToTarget = target.toVector().subtract(petLoc.toVector());
+                    double distTarget2 = deltaToTarget.lengthSquared();
+
+                    double teleportDist = settings.follow().teleportDistance();
+                    if (petLoc.distanceSquared(playerLoc) > (teleportDist * teleportDist)) {
+                        living.teleport(target);
+                        continue;
+                    }
+
+                    double closeDist = settings.follow().closeDistance();
+                    if (distTarget2 < (closeDist * closeDist)) {
+                        continue;
+                    }
+
+                    if (distTarget2 < 0.0004) continue;
+
+                    double dist = Math.sqrt(distTarget2);
+                    double maxStep = Math.max(0.05, settings.follow().stepSize());
+                    double stepLen = Math.min(maxStep, Math.max(0.18, dist * 0.40));
+                    Vector stepVec = deltaToTarget.multiply(stepLen / dist);
+
+                    Location step = petLoc.clone().add(stepVec);
+                    step.setYaw(playerLoc.getYaw());
+                    step.setPitch(0f);
+                    living.teleport(step);
                 }
 
-                if (!player.getWorld().equals(living.getWorld())) {
-                    living.teleport(player.getLocation());
-                    continue;
+                if (list.isEmpty()) {
+                    activePets.remove(playerId, list);
                 }
-
-                Location playerLoc = player.getLocation();
-                Location petLoc = living.getLocation();
-                double dist2 = petLoc.distanceSquared(playerLoc);
-
-                double teleportDist = settings.follow().teleportDistance();
-                if (dist2 > (teleportDist * teleportDist)) {
-                    living.teleport(computeTarget(playerLoc));
-                    continue;
-                }
-
-                Location target = computeTarget(playerLoc);
-                double closeDist = settings.follow().closeDistance();
-                if (dist2 < (closeDist * closeDist)) {
-                    continue;
-                }
-
-                Vector delta = target.toVector().subtract(petLoc.toVector());
-                if (delta.lengthSquared() < 0.01) continue;
-
-                Location step = petLoc.clone().add(delta.normalize().multiply(settings.follow().stepSize()));
-                step.setYaw(playerLoc.getYaw());
-                step.setPitch(0f);
-                living.teleport(step);
             }
         }, settings.follow().periodTicks(), settings.follow().periodTicks());
     }
@@ -212,31 +289,36 @@ public final class PetManager implements Listener {
         List<PluginSettings.ParticleOption> options = p.options();
         String defId = options.isEmpty() ? "end_rod" : options.get(0).id();
         this.particleTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Map.Entry<UUID, ActivePet> entry : activePets.entrySet()) {
+            for (Map.Entry<UUID, CopyOnWriteArrayList<ActivePet>> entry : activePets.entrySet()) {
                 UUID playerId = entry.getKey();
-                ActivePet active = entry.getValue();
+                CopyOnWriteArrayList<ActivePet> list = entry.getValue();
 
                 Player player = Bukkit.getPlayer(playerId);
                 if (player == null || !player.isOnline()) {
                     continue;
                 }
-
-                Entity entity = Bukkit.getEntity(active.entityId());
-                if (!(entity instanceof LivingEntity living) || living.isDead() || !living.isValid()) {
+                if (p.allowPlayerDisable() && !dataStore.getParticlesEnabled(playerId)) {
                     continue;
                 }
 
-                Location loc = living.getLocation().clone().add(0, p.yOffset(), 0);
-                String chosenId = resolveChosenParticleId(p, playerId, active.petId(), defId);
-                PluginSettings.ParticleOption option = options.stream()
-                        .filter(o -> o.id().equalsIgnoreCase(chosenId))
-                        .findFirst()
-                        .orElse(options.isEmpty() ? new PluginSettings.ParticleOption("end_rod", Particle.END_ROD, "Эндер-искра", "End Rod") : options.get(0));
+                for (ActivePet active : list) {
+                    Entity entity = Bukkit.getEntity(active.entityId());
+                    if (!(entity instanceof LivingEntity living) || living.isDead() || !living.isValid()) {
+                        continue;
+                    }
 
-                if (p.visibility() == PluginSettings.ParticleVisibility.OWNER && player != null) {
-                    player.spawnParticle(option.particle(), loc, p.count(), p.offsetX(), p.offsetY(), p.offsetZ(), p.extra());
-                } else {
-                    living.getWorld().spawnParticle(option.particle(), loc, p.count(), p.offsetX(), p.offsetY(), p.offsetZ(), p.extra());
+                    Location loc = living.getLocation().clone().add(0, p.yOffset(), 0);
+                    String chosenId = resolveChosenParticleId(p, playerId, active.petId(), defId);
+                    PluginSettings.ParticleOption option = options.stream()
+                            .filter(o -> o.id().equalsIgnoreCase(chosenId))
+                            .findFirst()
+                            .orElse(options.isEmpty() ? new PluginSettings.ParticleOption("end_rod", Particle.END_ROD, "Эндер-искра", "End Rod") : options.get(0));
+
+                    if (p.visibility() == PluginSettings.ParticleVisibility.OWNER) {
+                        player.spawnParticle(option.particle(), loc, p.count(), p.offsetX(), p.offsetY(), p.offsetZ(), p.extra());
+                    } else {
+                        living.getWorld().spawnParticle(option.particle(), loc, p.count(), p.offsetX(), p.offsetY(), p.offsetZ(), p.extra());
+                    }
                 }
             }
         }, p.delayTicks(), p.periodTicks());
@@ -255,20 +337,22 @@ public final class PetManager implements Listener {
         int duration = Math.max(20, eff.durationTicks());
         long period = Math.max(1L, eff.periodTicks());
         this.effectTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Map.Entry<UUID, ActivePet> entry : activePets.entrySet()) {
+            for (Map.Entry<UUID, CopyOnWriteArrayList<ActivePet>> entry : activePets.entrySet()) {
                 UUID playerId = entry.getKey();
-                ActivePet active = entry.getValue();
+                CopyOnWriteArrayList<ActivePet> list = entry.getValue();
 
                 Player player = Bukkit.getPlayer(playerId);
                 if (player == null || !player.isOnline()) {
                     continue;
                 }
 
-                Pet pet = pets.byId(active.petId());
-                if (pet == null) continue;
+                for (ActivePet active : list) {
+                    Pet pet = pets.byId(active.petId());
+                    if (pet == null) continue;
 
-                for (Pet.PassiveEffect pe : pet.passiveEffects().effects()) {
-                    applyPassiveEffect(player, pe, duration);
+                    for (Pet.PassiveEffect pe : pet.passiveEffects().effects()) {
+                        applyPassiveEffect(player, pe, duration);
+                    }
                 }
             }
         }, period, period);
@@ -288,11 +372,26 @@ public final class PetManager implements Listener {
         player.addPotionEffect(effect, false);
     }
 
-    private void removePassiveEffects(Player player, Pet pet) {
+    private void removePassiveEffects(Player player, Pet removedPet, List<ActivePet> remainingActive) {
+        Map<PotionEffectType, Integer> bestRemaining = new ConcurrentHashMap<>();
+        for (ActivePet active : remainingActive) {
+            Pet p = pets.byId(active.petId());
+            if (p == null) continue;
+            for (Pet.PassiveEffect eff : p.passiveEffects().effects()) {
+                PotionEffectType type = eff.type();
+                if (type == null) continue;
+                bestRemaining.merge(type, eff.amplifier(), Math::max);
+            }
+        }
+
         int maxDuration = settings.effects().durationTicks() + 40;
-        for (Pet.PassiveEffect passive : pet.passiveEffects().effects()) {
+        for (Pet.PassiveEffect passive : removedPet.passiveEffects().effects()) {
             PotionEffectType type = passive.type();
             if (type == null) continue;
+            Integer remainingAmp = bestRemaining.get(type);
+            if (remainingAmp != null && remainingAmp >= passive.amplifier()) {
+                continue;
+            }
             PotionEffect existing = player.getPotionEffect(type);
             if (existing == null) continue;
 
@@ -302,9 +401,43 @@ public final class PetManager implements Listener {
         }
     }
 
-    private Location computeTarget(Location playerLoc) {
+    private Location computeTarget(Location playerLoc, int index, int total) {
         Vector back = playerLoc.getDirection().normalize().multiply(-settings.follow().backDistance());
-        Location target = playerLoc.clone().add(back).add(0, settings.follow().height(), 0);
+        Location base = playerLoc.clone().add(back).add(0, settings.follow().height(), 0);
+
+        if (total <= 1) {
+            base.setYaw(playerLoc.getYaw());
+            base.setPitch(0f);
+            return base;
+        }
+
+        double sideSpacing = 0.60;
+        double downSpacing = 0.22;
+        double extraBackPerLevel = 0.08;
+
+        int level = Math.max(0, index / 3);
+        int pos = Math.floorMod(index, 3); // 0=left, 1=right, 2=center
+
+        double x;
+        double y = -level * downSpacing;
+        double z = level * extraBackPerLevel;
+
+        if (pos == 0) {
+            x = -sideSpacing;
+        } else if (pos == 1) {
+            x = sideSpacing;
+        } else {
+            x = 0.0;
+            // first "center" goes slightly lower so it doesn't stack
+            y = -(level + 1) * downSpacing;
+            z += extraBackPerLevel;
+        }
+
+        Vector right = playerLoc.getDirection().clone().crossProduct(new Vector(0, 1, 0)).normalize();
+        Vector offset = right.multiply(x).add(back.clone().normalize().multiply(z));
+
+        Location target = base.add(offset);
+        target.add(0, y, 0);
         target.setYaw(playerLoc.getYaw());
         target.setPitch(0f);
         return target;
@@ -330,32 +463,52 @@ public final class PetManager implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        deactivate(event.getPlayer().getUniqueId());
+        UUID playerId = event.getPlayer().getUniqueId();
+        CopyOnWriteArrayList<ActivePet> list = activePets.remove(playerId);
+        if (list != null) {
+            for (ActivePet active : list) {
+                removeEntity(active.entityId());
+            }
+        }
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        deactivate(event.getEntity().getUniqueId());
+        UUID playerId = event.getEntity().getUniqueId();
+        CopyOnWriteArrayList<ActivePet> list = activePets.remove(playerId);
+        if (list != null) {
+            for (ActivePet active : list) {
+                removeEntity(active.entityId());
+            }
+        }
     }
 
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
-        var active = activePets.get(event.getPlayer().getUniqueId());
-        if (active == null) return;
-        Entity entity = Bukkit.getEntity(active.entityId());
-        if (entity != null) {
-            entity.teleport(event.getPlayer().getLocation());
+        UUID playerId = event.getPlayer().getUniqueId();
+        CopyOnWriteArrayList<ActivePet> list = activePets.get(playerId);
+        if (list == null) return;
+        for (ActivePet active : list) {
+            Entity entity = Bukkit.getEntity(active.entityId());
+            if (entity != null) {
+                entity.teleport(event.getPlayer().getLocation());
+            }
         }
     }
 
     @EventHandler
     public void onTeleport(PlayerTeleportEvent event) {
-        var active = activePets.get(event.getPlayer().getUniqueId());
-        if (active == null) return;
-        Entity entity = Bukkit.getEntity(active.entityId());
-        if (entity != null) {
-            Bukkit.getScheduler().runTask(plugin, () -> entity.teleport(event.getPlayer().getLocation()));
-        }
+        UUID playerId = event.getPlayer().getUniqueId();
+        CopyOnWriteArrayList<ActivePet> list = activePets.get(playerId);
+        if (list == null) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            for (ActivePet active : list) {
+                Entity entity = Bukkit.getEntity(active.entityId());
+                if (entity != null) {
+                    entity.teleport(event.getPlayer().getLocation());
+                }
+            }
+        });
     }
 
     @EventHandler
@@ -373,6 +526,64 @@ public final class PetManager implements Listener {
             return;
         }
         event.setCancelled(true);
+    }
+
+    private ActivePet findActive(List<ActivePet> list, String petId) {
+        for (ActivePet active : list) {
+            if (active.petId().equalsIgnoreCase(petId)) return active;
+        }
+        return null;
+    }
+
+    private void restorePets(Player player) {
+        UUID playerId = player.getUniqueId();
+        List<String> stored = dataStore.getActivePets(playerId);
+        if (stored.isEmpty()) return;
+
+        int max = settings.pets().maxActivePerPlayer();
+        List<String> toSpawnIds = new ArrayList<>();
+        for (String id : stored) {
+            if (toSpawnIds.size() >= max) break;
+            Pet pet = pets.byId(id);
+            if (pet == null) continue;
+            if (!player.hasPermission(pet.permission())) continue;
+            if (toSpawnIds.stream().anyMatch(s -> s.equalsIgnoreCase(id))) continue;
+            toSpawnIds.add(id);
+        }
+
+        if (toSpawnIds.isEmpty()) return;
+
+        CopyOnWriteArrayList<ActivePet> list = activePets.computeIfAbsent(playerId, k -> new CopyOnWriteArrayList<>());
+        for (ActivePet active : list) {
+            removeEntity(active.entityId());
+        }
+        list.clear();
+
+        int total = toSpawnIds.size();
+        for (int i = 0; i < total; i++) {
+            Pet pet = pets.byId(toSpawnIds.get(i));
+            if (pet == null) continue;
+            ActivePet active = activate(player, pet, i, total);
+            if (active != null) list.add(active);
+        }
+
+        // keep data consistent (drop missing/locked/over-limit entries)
+        if (!stored.equals(toSpawnIds)) {
+            dataStore.setActivePets(playerId, toSpawnIds);
+            dataStore.save();
+        }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> restorePets(player), 1L);
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> restorePets(player), 5L);
     }
 
     private record ActivePet(String petId, UUID entityId) {}

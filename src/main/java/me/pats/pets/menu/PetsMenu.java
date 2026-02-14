@@ -7,6 +7,7 @@ import me.pats.pets.pets.Pet;
 import me.pats.pets.pets.PetManager;
 import me.pats.pets.pets.PetRegistry;
 import me.pats.pets.storage.DataStore;
+import me.pats.pets.text.Text;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -29,9 +30,6 @@ import org.bukkit.plugin.Plugin;
 import java.util.*;
 
 public final class PetsMenu implements Listener {
-
-    private static final int MENU_SIZE = 54;
-    private static final int PAGE_SIZE = 28;
 
     private final Plugin plugin;
     private final PetManager petManager;
@@ -67,15 +65,17 @@ public final class PetsMenu implements Listener {
         String title = i18n.tr(player, "menu.title", Map.of("tab", tabTitle));
 
         var holder = new PetsMenuHolder(player.getUniqueId(), view, page);
-        var inventory = Bukkit.createInventory(holder, MENU_SIZE, Component.text(title, NamedTextColor.GOLD));
+        int size = settings.menu().gui().size();
+        var inventory = Bukkit.createInventory(holder, size, Component.text(title, NamedTextColor.GOLD));
         holder.setInventory(inventory);
 
         paintFrame(inventory);
-        inventory.setItem(0, createTabItem(player, "menu.tab.all", view == View.ALL, "tab_all"));
-        inventory.setItem(1, createTabItem(player, "menu.tab.mine", view == View.MINE, "tab_mine"));
-        inventory.setItem(49, createParticleItem(player, lang));
-        inventory.setItem(45, createNavItem(player, "menu.nav.prev", "page_prev", Material.ARROW));
-        inventory.setItem(53, createNavItem(player, "menu.nav.next", "page_next", Material.ARROW));
+        var slots = settings.menu().gui().slots();
+        inventory.setItem(slots.tabAll(), createTabItem(player, "menu.tab.all", view == View.ALL, "tab_all"));
+        inventory.setItem(slots.tabMine(), createTabItem(player, "menu.tab.mine", view == View.MINE, "tab_mine"));
+        inventory.setItem(slots.particles(), createParticleItem(player, lang));
+        inventory.setItem(slots.pagePrev(), createNavItem(player, "menu.nav.prev", "page_prev"));
+        inventory.setItem(slots.pageNext(), createNavItem(player, "menu.nav.next", "page_next"));
 
         List<Pet> filtered = new ArrayList<>();
         for (Pet pet : pets.all()) {
@@ -86,16 +86,17 @@ public final class PetsMenu implements Listener {
             filtered.add(pet);
         }
 
-        int pages = Math.max(1, (int) Math.ceil(filtered.size() / (double) PAGE_SIZE));
+        int pageSize = Math.max(1, settings.menu().gui().grid().pageSize());
+        int pages = Math.max(1, (int) Math.ceil(filtered.size() / (double) pageSize));
         int safePage = Math.max(0, Math.min(page, pages - 1));
         holder.setPage(safePage);
 
-        inventory.setItem(51, createPageItem(player, safePage + 1, pages));
+        inventory.setItem(slots.pageInfo(), createPageItem(player, safePage + 1, pages));
 
-        int from = safePage * PAGE_SIZE;
-        int to = Math.min(from + PAGE_SIZE, filtered.size());
+        int from = safePage * pageSize;
+        int to = Math.min(from + pageSize, filtered.size());
 
-        int slot = 10;
+        int slot = firstGridSlot();
         boolean any = false;
         for (int i = from; i < to; i++) {
             Pet pet = filtered.get(i);
@@ -112,14 +113,18 @@ public final class PetsMenu implements Listener {
     }
 
     private void paintFrame(Inventory inventory) {
-        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        var gui = settings.menu().gui();
+        if (!gui.frameEnabled()) return;
+
+        ItemStack pane = new ItemStack(gui.frameMaterial());
         ItemMeta meta = pane.getItemMeta();
         meta.displayName(Component.empty());
         pane.setItemMeta(meta);
-        for (int i = 0; i < MENU_SIZE; i++) {
+        for (int i = 0; i < inventory.getSize(); i++) {
             int row = i / 9;
             int col = i % 9;
-            boolean border = row == 0 || row == 5 || col == 0 || col == 8;
+            int lastRow = (inventory.getSize() / 9) - 1;
+            boolean border = row == 0 || row == lastRow || col == 0 || col == 8;
             if (border) {
                 inventory.setItem(i, pane);
             }
@@ -128,7 +133,8 @@ public final class PetsMenu implements Listener {
 
     private ItemStack createTabItem(Player player, String titleKey, boolean selected, String action) {
         String name = i18n.tr(player, titleKey);
-        ItemStack item = new ItemStack(selected ? Material.LIME_STAINED_GLASS_PANE : Material.BLUE_STAINED_GLASS_PANE);
+        Material material = selected ? settings.menu().gui().items().tabSelected() : settings.menu().gui().items().tabUnselected();
+        ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text(name, selected ? NamedTextColor.GREEN : NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
@@ -140,8 +146,8 @@ public final class PetsMenu implements Listener {
         return item;
     }
 
-    private ItemStack createNavItem(Player player, String titleKey, String action, Material material) {
-        ItemStack item = new ItemStack(material);
+    private ItemStack createNavItem(Player player, String titleKey, String action) {
+        ItemStack item = new ItemStack(settings.menu().gui().items().nav());
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text(i18n.tr(player, titleKey), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action);
@@ -150,7 +156,7 @@ public final class PetsMenu implements Listener {
     }
 
     private ItemStack createPageItem(Player player, int page, int pages) {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(settings.menu().gui().items().pageInfo());
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text(i18n.tr(player, "menu.nav.page", Map.of("page", String.valueOf(page), "pages", String.valueOf(pages))), NamedTextColor.GRAY)
                 .decoration(TextDecoration.ITALIC, false));
@@ -163,82 +169,112 @@ public final class PetsMenu implements Listener {
         if (!ps.enabled() || ps.options().isEmpty()) {
             ItemStack item = new ItemStack(Material.BARRIER);
             ItemMeta meta = item.getItemMeta();
-            meta.displayName(Component.text(i18n.tr(player, "menu.particles.title"), NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-            meta.lore(List.of(Component.text(i18n.tr(player, "menu.particles.disabled"), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            meta.displayName(Text.parse("&6" + i18n.tr(player, "menu.particles.title")).decoration(TextDecoration.ITALIC, false));
+            meta.lore(List.of(Text.parse("&7" + i18n.tr(player, "menu.particles.disabled")).decoration(TextDecoration.ITALIC, false)));
             item.setItemMeta(meta);
             return item;
         }
 
         String defId = ps.options().get(0).id();
-        String chosenId = dataStore.getParticleId(player.getUniqueId(), defId);
+        boolean enabled = !ps.allowPlayerDisable() || dataStore.getParticlesEnabled(player.getUniqueId());
+        String chosenId = enabled ? dataStore.getParticleId(player.getUniqueId(), defId) : "off";
         PluginSettings.ParticleOption option = ps.options().stream()
                 .filter(o -> o.id().equalsIgnoreCase(chosenId))
                 .findFirst()
                 .orElse(ps.options().get(0));
 
-        ItemStack item = new ItemStack(Material.BLAZE_POWDER);
+        ItemStack item = new ItemStack(settings.menu().gui().items().particles());
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(i18n.tr(player, "menu.particles.title"), NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        meta.lore(List.of(
-                Component.text(i18n.tr(player, "menu.particles.current", Map.of("name", option.displayName(lang))), NamedTextColor.AQUA)
-                        .decoration(TextDecoration.ITALIC, false),
-                Component.empty(),
-                Component.text(i18n.tr(player, "menu.particles.left"), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
-                Component.text(i18n.tr(player, "menu.particles.right"), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
-        ));
+        meta.displayName(Text.parse("&6" + i18n.tr(player, "menu.particles.title")).decoration(TextDecoration.ITALIC, false));
+        String currentName = enabled ? option.displayName(lang) : i18n.tr(player, "menu.particles.off");
+        List<Component> lore = new ArrayList<>();
+        lore.add(Text.parse("&b" + i18n.tr(player, "menu.particles.current", Map.of("name", currentName))).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.empty());
+        lore.add(Text.parse("&e" + i18n.tr(player, "menu.particles.left")).decoration(TextDecoration.ITALIC, false));
+        lore.add(Text.parse("&e" + i18n.tr(player, "menu.particles.right")).decoration(TextDecoration.ITALIC, false));
+        if (ps.allowPlayerDisable()) {
+            lore.add(Text.parse("&e" + i18n.tr(player, "menu.particles.toggle")).decoration(TextDecoration.ITALIC, false));
+        }
+        meta.lore(lore);
         meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, "particle");
         item.setItemMeta(meta);
         return item;
     }
 
     private ItemStack createInfoItem(Player player, String titleKey, String lineKey) {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(settings.menu().gui().items().empty());
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(i18n.tr(player, titleKey), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-        meta.lore(List.of(Component.text(i18n.tr(player, lineKey), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)));
+        meta.displayName(Text.parse("&7" + i18n.tr(player, titleKey)).decoration(TextDecoration.ITALIC, false));
+        meta.lore(List.of(Text.parse("&8" + i18n.tr(player, lineKey)).decoration(TextDecoration.ITALIC, false)));
         item.setItemMeta(meta);
         return item;
     }
 
+    private int firstGridSlot() {
+        var g = settings.menu().gui().grid();
+        return ((g.startRow() - 1) * 9) + (g.startCol() - 1);
+    }
+
     private int nextGridSlot(int slot) {
+        var g = settings.menu().gui().grid();
+        int startRow0 = g.startRow() - 1;
+        int startCol0 = g.startCol() - 1;
+
         int row = slot / 9;
         int col = slot % 9;
+
+        int endCol = startCol0 + g.cols() - 1;
+        int endRow = startRow0 + g.rows() - 1;
+
         col++;
-        if (col >= 8) {
+        if (col > endCol) {
             row++;
-            col = 1;
+            col = startCol0;
         }
-        if (row >= 5) return -1;
+        if (row > endRow) return -1;
         return row * 9 + col;
     }
 
     private ItemStack createPetItem(Player player, Pet pet, Language lang) {
         boolean hasAccess = player.hasPermission(pet.permission());
-        boolean active = Objects.equals(petManager.getActivePetId(player.getUniqueId()), pet.id());
+        boolean active = petManager.isPetActive(player.getUniqueId(), pet.id());
 
         ItemStack item = pet.iconItem();
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(pet.displayName(lang), hasAccess ? NamedTextColor.AQUA : NamedTextColor.RED)
-                .decoration(TextDecoration.ITALIC, false));
+        String namePrefix = hasAccess ? "&b" : "&c";
+        meta.displayName(Text.parse(namePrefix + pet.displayName(lang)).decoration(TextDecoration.ITALIC, false));
 
         List<Component> lore = new ArrayList<>();
         if (!hasAccess) {
-            lore.add(Component.text(i18n.tr(player, "menu.pet.locked"), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text(pet.permission(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(Text.parse("&7" + i18n.tr(player, "menu.pet.locked")).decoration(TextDecoration.ITALIC, false));
+            lore.add(Text.parse("&8" + pet.permission()).decoration(TextDecoration.ITALIC, false));
         } else {
-            lore.add(Component.text(i18n.tr(player, active ? "menu.pet.active" : "menu.pet.inactive"), active ? NamedTextColor.GREEN : NamedTextColor.GRAY)
+            lore.add(Text.parse((active ? "&a" : "&7") + i18n.tr(player, active ? "menu.pet.active" : "menu.pet.inactive"))
                     .decoration(TextDecoration.ITALIC, false));
+
+            if (!pet.passiveEffects().effects().isEmpty()) {
+                lore.add(Component.empty());
+                lore.add(Text.parse("&d" + i18n.tr(player, "menu.pet.effects_title")).decoration(TextDecoration.ITALIC, false));
+                for (var eff : pet.passiveEffects().effects()) {
+                    int level = Math.max(1, eff.amplifier() + 1);
+                    lore.add(
+                            Component.text(" - ", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false)
+                                    .append(Component.translatable(eff.type()).color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false))
+                                    .append(Component.text(" " + toRoman(level), NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false))
+                    );
+                }
+            }
 
             if (settings.particles().enabled() && settings.particles().perPetSelection() && !settings.particles().options().isEmpty()) {
                 PluginSettings.ParticleOption option = resolvePetParticleOption(player.getUniqueId(), pet.id());
-                lore.add(Component.text(i18n.tr(player, "menu.pet.particle", Map.of("name", option.displayName(lang))), NamedTextColor.AQUA)
+                lore.add(Text.parse("&b" + i18n.tr(player, "menu.pet.particle", Map.of("name", option.displayName(lang))))
                         .decoration(TextDecoration.ITALIC, false));
-                lore.add(Component.text(i18n.tr(player, "menu.pet.right_particle_next"), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
-                lore.add(Component.text(i18n.tr(player, "menu.pet.shift_right_particle_prev"), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+                lore.add(Text.parse("&e" + i18n.tr(player, "menu.pet.right_particle_next")).decoration(TextDecoration.ITALIC, false));
+                lore.add(Text.parse("&e" + i18n.tr(player, "menu.pet.shift_right_particle_prev")).decoration(TextDecoration.ITALIC, false));
             }
 
             lore.add(Component.empty());
-            lore.add(Component.text(i18n.tr(player, active ? "menu.pet.left_toggle_off" : "menu.pet.left_toggle_on"), NamedTextColor.YELLOW)
+            lore.add(Text.parse("&e" + i18n.tr(player, active ? "menu.pet.left_toggle_off" : "menu.pet.left_toggle_on"))
                     .decoration(TextDecoration.ITALIC, false));
             if (active) {
                 meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, 1, true);
@@ -250,6 +286,34 @@ public final class PetsMenu implements Listener {
         meta.getPersistentDataContainer().set(petIdKey, PersistentDataType.STRING, pet.id());
         item.setItemMeta(meta);
         return item;
+    }
+
+    private static String toRoman(int number) {
+        if (number <= 0) return String.valueOf(number);
+        if (number > 20) return String.valueOf(number);
+        return switch (number) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            case 6 -> "VI";
+            case 7 -> "VII";
+            case 8 -> "VIII";
+            case 9 -> "IX";
+            case 10 -> "X";
+            case 11 -> "XI";
+            case 12 -> "XII";
+            case 13 -> "XIII";
+            case 14 -> "XIV";
+            case 15 -> "XV";
+            case 16 -> "XVI";
+            case 17 -> "XVII";
+            case 18 -> "XVIII";
+            case 19 -> "XIX";
+            case 20 -> "XX";
+            default -> String.valueOf(number);
+        };
     }
 
     @EventHandler
@@ -273,7 +337,11 @@ public final class PetsMenu implements Listener {
                 case "tab_all" -> open(player, View.ALL, 0);
                 case "tab_mine" -> open(player, View.MINE, 0);
                 case "particle" -> {
-                    cycleParticle(player, event.isRightClick() ? -1 : 1);
+                    if (event.getClick() == ClickType.SHIFT_LEFT) {
+                        toggleParticles(player);
+                    } else {
+                        cycleParticle(player, event.isRightClick() ? -1 : 1);
+                    }
                     Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.page()));
                 }
                 case "page_prev" -> Bukkit.getScheduler().runTask(plugin, () -> open(player, holder.view(), holder.page() - 1));
@@ -289,7 +357,7 @@ public final class PetsMenu implements Listener {
         if (pet == null) return;
 
         if (!player.hasPermission(pet.permission())) {
-            player.sendMessage(Component.text(i18n.tr(player, "msg.no_permission_pet"), NamedTextColor.RED));
+            player.sendMessage(Text.parse("&c" + i18n.tr(player, "msg.no_permission_pet")));
             return;
         }
 
@@ -312,6 +380,9 @@ public final class PetsMenu implements Listener {
     private void cycleParticle(Player player, int delta) {
         PluginSettings.ParticleSettings ps = settings.particles();
         if (!ps.enabled() || ps.options().isEmpty()) return;
+        if (ps.allowPlayerDisable() && !dataStore.getParticlesEnabled(player.getUniqueId())) {
+            return;
+        }
 
         String defId = ps.options().get(0).id();
         String chosenId = dataStore.getParticleId(player.getUniqueId(), defId);
@@ -327,6 +398,14 @@ public final class PetsMenu implements Listener {
         int next = (idx + delta) % ps.options().size();
         if (next < 0) next += ps.options().size();
         dataStore.setParticleId(player.getUniqueId(), ps.options().get(next).id());
+        dataStore.save();
+    }
+
+    private void toggleParticles(Player player) {
+        PluginSettings.ParticleSettings ps = settings.particles();
+        if (!ps.enabled() || !ps.allowPlayerDisable()) return;
+        boolean current = dataStore.getParticlesEnabled(player.getUniqueId());
+        dataStore.setParticlesEnabled(player.getUniqueId(), !current);
         dataStore.save();
     }
 

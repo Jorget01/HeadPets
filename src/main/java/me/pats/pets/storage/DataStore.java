@@ -6,6 +6,8 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public final class DataStore {
@@ -44,6 +46,14 @@ public final class DataStore {
         config.set("players." + playerId + ".particle", particleId);
     }
 
+    public boolean getParticlesEnabled(UUID playerId) {
+        return config.getBoolean("players." + playerId + ".particles_enabled", true);
+    }
+
+    public void setParticlesEnabled(UUID playerId, boolean enabled) {
+        config.set("players." + playerId + ".particles_enabled", enabled);
+    }
+
     public String getPetParticleId(UUID playerId, String petId) {
         return config.getString("players." + playerId + ".pet_particles." + petId, null);
     }
@@ -54,6 +64,39 @@ public final class DataStore {
             config.set(path, null);
         } else {
             config.set(path, particleId);
+        }
+    }
+
+    public List<String> getActivePets(UUID playerId) {
+        List<String> list = config.getStringList("players." + playerId + ".active_pets");
+        if (list == null) return List.of();
+        List<String> out = new ArrayList<>();
+        for (String id : list) {
+            if (id == null) continue;
+            String trimmed = id.trim();
+            if (!trimmed.isEmpty()) out.add(trimmed);
+        }
+        return out;
+    }
+
+    public void setActivePets(UUID playerId, List<String> petIds) {
+        config.set("players." + playerId + ".active_pets", petIds == null ? List.of() : petIds);
+    }
+
+    public void addActivePet(UUID playerId, String petId) {
+        List<String> list = new ArrayList<>(getActivePets(playerId));
+        for (String existing : list) {
+            if (existing.equalsIgnoreCase(petId)) return;
+        }
+        list.add(petId);
+        setActivePets(playerId, list);
+    }
+
+    public void removeActivePet(UUID playerId, String petId) {
+        List<String> list = new ArrayList<>(getActivePets(playerId));
+        boolean changed = list.removeIf(s -> s.equalsIgnoreCase(petId));
+        if (changed) {
+            setActivePets(playerId, list);
         }
     }
 

@@ -10,6 +10,31 @@ settings:
 menu:
   # Show pets without permission in "All pets" tab
   show-locked-in-all: true
+  gui:
+    size: 54
+    frame:
+      enabled: true
+      material: GRAY_STAINED_GLASS_PANE
+    slots:
+      tab-all: 0
+      tab-mine: 1
+      particles: 49
+      page-prev: 45
+      page-info: 51
+      page-next: 53
+    items:
+      tab-selected: LIME_STAINED_GLASS_PANE
+      tab-unselected: BLUE_STAINED_GLASS_PANE
+      particles: BLAZE_POWDER
+      nav: ARROW
+      page-info: PAPER
+      empty: PAPER
+    grid:
+      # area where pets are rendered (default is 4 rows x 7 cols like classic GUI)
+      start-row: 2
+      start-col: 2
+      rows: 4
+      cols: 7
 
 follow:
   period-ticks: 2
@@ -27,6 +52,8 @@ particles:
   y-offset: 1.0
   # allow players to select particles per pet (stored in data.yml)
   per-pet-selection: true
+  # allow players to disable particles for themselves (stored in data.yml)
+  allow-player-disable: true
   delay-ticks: 10
   period-ticks: 6
   count: 2
@@ -78,6 +105,10 @@ effects:
 # - `permission` is optional (default: pats.pets.<id>)
 # - `display` can be a string (same for ru/en) or a map {ru/en}
 # - `effects` can be written as maps OR shorthand strings like "SPEED:0"
+pets-settings:
+  # How many pets a player can have active at once
+  max-active-per-player: 1
+
 pets:
   - id: head_118
     permission: pats.pets.head.118
@@ -85,7 +116,7 @@ pets:
       ru: "Донки Конг"
       en: "Donkey Kong"
     head:
-      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
+      # profile-id is optional. If omitted, plugin generates a stable UUID from the pet id.
       profile-name: "mcheads-118"
       textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTExYmU3NTkyMzNjNzQ3MzRiMjExZWNlNTU1ZDU4NWEyMjlhMzk5ZDVhOTJiMzYxNGFiNDdjMDQ2ZDc4NSJ9fX0="
     effects:
@@ -97,7 +128,6 @@ pets:
       ru: "Брутальный петух"
       en: "Brutal Rooster"
     head:
-      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
       profile-name: "mcheads-1373"
       textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDJkNTEyMmE1YzE0NzU4ODI1YzRlMTkyODQ0Nzg2ZjMxNTI3NTE1OTBhNzcxYmEzMWM4ZDMyMjZhMmE1ZiJ9fX0="
   - id: head_1062
@@ -106,7 +136,6 @@ pets:
       ru: "Радужная овечка"
       en: "Rainbow Sheep"
     head:
-      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
       profile-name: "mcheads-1062"
       textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjdlMmJmNTM5YzhlMGFkNDY4ZTUyN2I0N2NmM2EyMWQ0ZTlhY2UxODcyM2E3MjI0OWI3ZDYzZTg1ZmI4YWUwIn19fQ=="
   - id: head_1898
@@ -115,7 +144,6 @@ pets:
       ru: "Светло-серый барашек (фигурка)"
       en: "Light Gray Ram (Figurine)"
     head:
-      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
       profile-name: "mcheads-1898"
       textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdmNWFhZDVmMTE1ZjkxZTI0M2I0Y2IyZjFhMjc2ZmQzMjdkYWZkMzZiZTYxMmRjZjUyMTRkNGMyNTZiOSJ9fX0="
   - id: head_4534
@@ -124,6 +152,5 @@ pets:
       ru: "Оманайт (покемон)"
       en: "Omanyte (Pokemon)"
     head:
-      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
       profile-name: "mcheads-4534"
       textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTRjNjUzMTJmMmM1MzlmNjgyZDFkNWM0ODJjOWY0OTRjOWM5MWM1MzhjNWUyYjg4N2JkZmY4ZmNkOWMzZiJ9fX0="

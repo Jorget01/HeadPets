@@ -9,8 +9,26 @@ commands:
     description: Открыть меню питомцев
     usage: /pets
     permission: pats.pets.open
+  petsreload:
+    description: Перезагрузить конфиг/языки/питомцев
+    usage: /petsreload
+    permission: pats.pets.reload
+  petadd:
+    description: Добавить питомца в config.yml
+    usage: /petadd <id> <texturesBase64> [ru_name] [en_name]
+    permission: pats.pets.admin
+  petremove:
+    description: Удалить питомца из config.yml
+    usage: /petremove <id>
+    permission: pats.pets.admin
 
 permissions:
   pats.pets.open:
     description: Доступ к команде /pets
     default: true
+  pats.pets.reload:
+    description: Перезагрузка плагина (конфиг/языки)
+    default: op
+  pats.pets.admin:
+    description: Управление питомцами через команды
+    default: op
