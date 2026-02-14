@@ -1,0 +1,129 @@
+settings:
+  language:
+    # auto -> based on player locale (ru_* => ru, else en)
+    # fixed -> always use `fixed`
+    mode: auto
+    fixed: ru
+    # if true, player can override (stored in data.yml)
+    allow-player-override: true
+
+menu:
+  # Show pets without permission in "All pets" tab
+  show-locked-in-all: true
+
+follow:
+  period-ticks: 2
+  back-distance: 1.15
+  height: 1.2
+  close-distance: 2.1
+  step-size: 0.6
+  teleport-distance: 24.0
+
+particles:
+  enabled: true
+  # all | owner
+  visibility: all
+  # vertical offset from pet entity location to spawn particles (armorstand head)
+  y-offset: 1.0
+  # allow players to select particles per pet (stored in data.yml)
+  per-pet-selection: true
+  delay-ticks: 10
+  period-ticks: 6
+  count: 2
+  offset-x: 0.25
+  offset-y: 0.25
+  offset-z: 0.25
+  extra: 0.0
+  options:
+    - id: end_rod
+      particle: END_ROD
+      display:
+        ru: "Эндер-искра"
+        en: "End Rod"
+    - id: heart
+      particle: HEART
+      display:
+        ru: "Сердечки"
+        en: "Hearts"
+    - id: enchant
+      particle: ENCHANT
+      display:
+        ru: "Чары"
+        en: "Enchants"
+    - id: happy
+      particle: HAPPY_VILLAGER
+      display:
+        ru: "Счастье"
+        en: "Happy"
+    - id: cloud
+      particle: CLOUD
+      display:
+        ru: "Облачко"
+        en: "Cloud"
+    - id: crit
+      particle: CRIT
+      display:
+        ru: "Криты"
+        en: "Crit"
+
+# Passive potion effects while a pet is active.
+effects:
+  enabled: true
+  period-ticks: 40
+  duration-ticks: 80
+  remove-on-deactivate: true
+
+# Add pets here. You can add more entries.
+# Tips:
+# - `permission` is optional (default: pats.pets.<id>)
+# - `display` can be a string (same for ru/en) or a map {ru/en}
+# - `effects` can be written as maps OR shorthand strings like "SPEED:0"
+pets:
+  - id: head_118
+    permission: pats.pets.head.118
+    display:
+      ru: "Донки Конг"
+      en: "Donkey Kong"
+    head:
+      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
+      profile-name: "mcheads-118"
+      textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTExYmU3NTkyMzNjNzQ3MzRiMjExZWNlNTU1ZDU4NWEyMjlhMzk5ZDVhOTJiMzYxNGFiNDdjMDQ2ZDc4NSJ9fX0="
+    effects:
+      - type: SPEED
+        amplifier: 0
+  - id: head_1373
+    permission: pats.pets.head.1373
+    display:
+      ru: "Брутальный петух"
+      en: "Brutal Rooster"
+    head:
+      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
+      profile-name: "mcheads-1373"
+      textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDJkNTEyMmE1YzE0NzU4ODI1YzRlMTkyODQ0Nzg2ZjMxNTI3NTE1OTBhNzcxYmEzMWM4ZDMyMjZhMmE1ZiJ9fX0="
+  - id: head_1062
+    permission: pats.pets.head.1062
+    display:
+      ru: "Радужная овечка"
+      en: "Rainbow Sheep"
+    head:
+      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
+      profile-name: "mcheads-1062"
+      textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjdlMmJmNTM5YzhlMGFkNDY4ZTUyN2I0N2NmM2EyMWQ0ZTlhY2UxODcyM2E3MjI0OWI3ZDYzZTg1ZmI4YWUwIn19fQ=="
+  - id: head_1898
+    permission: pats.pets.head.1898
+    display:
+      ru: "Светло-серый барашек (фигурка)"
+      en: "Light Gray Ram (Figurine)"
+    head:
+      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
+      profile-name: "mcheads-1898"
+      textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdmNWFhZDVmMTE1ZjkxZTI0M2I0Y2IyZjFhMjc2ZmQzMjdkYWZkMzZiZTYxMmRjZjUyMTRkNGMyNTZiOSJ9fX0="
+  - id: head_4534
+    permission: pats.pets.head.4534
+    display:
+      ru: "Оманайт (покемон)"
+      en: "Omanyte (Pokemon)"
+    head:
+      profile-id: "ffffffff-e0bd-4006-a424-707d7436ebeb"
+      profile-name: "mcheads-4534"
+      textures: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTRjNjUzMTJmMmM1MzlmNjgyZDFkNWM0ODJjOWY0OTRjOWM5MWM1MzhjNWUyYjg4N2JkZmY4ZmNkOWMzZiJ9fX0="

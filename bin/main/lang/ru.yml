@@ -1,0 +1,35 @@
+menu:
+  title: "Питомцы • {tab}"
+  tab:
+    all: "Все питомцы"
+    mine: "Мои питомцы"
+  selected: "Выбрано"
+  click_to_open: "Нажми чтобы открыть"
+  particles:
+    title: "Партиклы"
+    current: "Текущие: {name}"
+    left: "ЛКМ: следующий"
+    right: "ПКМ: предыдущий"
+    disabled: "Отключено на сервере"
+  pet:
+    locked: "Нет доступа (perms)."
+    active: "Сейчас активен"
+    inactive: "Сейчас не активен"
+    left_toggle_on: "ЛКМ: активировать"
+    left_toggle_off: "ЛКМ: деактивировать"
+    particle: "Партиклы: {name}"
+    right_particle_next: "ПКМ: сменить партиклы"
+    shift_right_particle_prev: "Shift+ПКМ: предыдущие"
+  nav:
+    prev: "Назад"
+    next: "Вперед"
+    page: "Страница {page}/{pages}"
+  empty:
+    title: "Нет доступных питомцев"
+    hint: "Выдай игроку нужные permissions."
+
+msg:
+  no_permission_pet: "У тебя нет доступа к этому питомцу."
+  pet_activated: "Питомец активирован: {name}"
+  pet_deactivated: "Питомец деактивирован."
+  player_only: "Эта команда доступна только игроку."

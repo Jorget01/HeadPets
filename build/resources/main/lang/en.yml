@@ -1,0 +1,35 @@
+menu:
+  title: "Pets • {tab}"
+  tab:
+    all: "All pets"
+    mine: "My pets"
+  selected: "Selected"
+  click_to_open: "Click to open"
+  particles:
+    title: "Particles"
+    current: "Current: {name}"
+    left: "LMB: next"
+    right: "RMB: previous"
+    disabled: "Disabled on server"
+  pet:
+    locked: "No access (perms)."
+    active: "Active"
+    inactive: "Inactive"
+    left_toggle_on: "LMB: activate"
+    left_toggle_off: "LMB: deactivate"
+    particle: "Particles: {name}"
+    right_particle_next: "RMB: change particles"
+    shift_right_particle_prev: "Shift+RMB: previous"
+  nav:
+    prev: "Previous"
+    next: "Next"
+    page: "Page {page}/{pages}"
+  empty:
+    title: "No available pets"
+    hint: "Grant the required permissions."
+
+msg:
+  no_permission_pet: "You don't have access to this pet."
+  pet_activated: "Pet activated: {name}"
+  pet_deactivated: "Pet deactivated."
+  player_only: "This command can only be used by a player."
